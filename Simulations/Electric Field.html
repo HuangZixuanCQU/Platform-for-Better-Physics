@@ -359,20 +359,14 @@
 
         # Compute potential
         V = total_potential(charges, X, Y)
-        V = np.clip(V, -20, 20)  # Clip for visualisation
+    
+        # Clip potential to avoid infinities near charges
+        V_clipped = np.clip(V, -15, 15)
 
         # --- Equipotential contours ---
-        n_levels = 15
-        levels = np.linspace(-15, 15, n_levels)
-        # Filter out levels that are too close to charges
-        valid_levels = []
-        for level in levels:
-            if abs(level) > 0.5:
-                valid_levels.append(level)
-        if not valid_levels:
-            valid_levels = levels
-
-        contour = ax.contour(X, Y, V, levels=valid_levels,
+        levels = np.linspace(-12, 12, 20)
+    
+        contour = ax.contour(X, Y, V_clipped, levels=levels,
                              colors='#dc3545', alpha=0.5, linewidths=0.8)
 
         # --- Field lines ---
@@ -385,11 +379,9 @@
         for q, pos in charges:
             if q > 0:
                 color = '#ffc107'
-                marker = 'o'
                 size = 300 * (q / max(abs(q1), abs(q2), 1))
             else:
                 color = '#28a745'
-                marker = 'o'
                 size = 300 * (abs(q) / max(abs(q1), abs(q2), 1))
             ax.scatter(pos[0], pos[1], s=max(size, 100), color=color,
                        edgecolor='black', linewidth=1.5, zorder=10)
@@ -436,7 +428,6 @@
         doc.getElementById('q1Display').textContent = f'{q1:+.1f}'
         doc.getElementById('q2Display').textContent = f'{q2:+.1f}'
         doc.getElementById('linesDisplay').textContent = str(len(start_points))
-
         return fig
 
     # ----------------------------------------------------------------
