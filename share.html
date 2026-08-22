@@ -83,7 +83,7 @@
         }
         .stats-bar span { background: white; padding: 4px 16px; border-radius: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 
-        /* ===== TOOLBAR (Search + Filter) ===== */
+        /* ===== TOOLBAR ===== */
         .toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -136,99 +136,86 @@
             margin-left: 4px;
         }
 
-        /* ===== CATEGORY & CARDS ===== */
-        .category {
-            margin-top: 28px;
-            background: white;
-            border-radius: 16px;
-            padding: 20px 24px 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            transition: opacity 0.2s;
+        /* ===== FLAT FILE LIST ===== */
+        #file-container {
+            margin-top: 20px;
         }
-        .category.hidden { display: none; }
-        .category h2 {
-            color: #1a2332;
-            font-size: 19px;
-            margin: 0 0 14px 0;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #e9ecf0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .category h2 .count {
-            font-size: 13px;
-            font-weight: 400;
-            color: #6b7a8f;
-            margin-left: auto;
-        }
-        .grid {
+        .file-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 14px;
         }
-        .card {
-            background: #f8f9fc;
-            border-radius: 10px;
-            padding: 14px 14px 16px;
+        .file-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 18px 18px;
             transition: all 0.15s;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: center;
             border: 1px solid #eef0f3;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
-        .card:hover {
+        .file-card:hover {
             background: #f0f3ff;
             border-color: #2d7aff;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(45,122,255,0.12);
+            box-shadow: 0 4px 16px rgba(45,122,255,0.10);
         }
-        .card.hidden { display: none; }
-        .ext {
-            font-size: 28px;
+        .file-card.hidden {
+            display: none;
+        }
+        .file-card .ext {
+            font-size: 26px;
             font-weight: 300;
             color: #2d7aff;
-            margin-bottom: 2px;
             font-family: 'Courier New', monospace;
             text-transform: uppercase;
+            margin-bottom: 2px;
         }
-        .name {
+        .file-card .name {
             font-weight: 500;
-            font-size: 13px;
+            font-size: 14px;
             word-break: break-all;
             color: #1a2332;
-            width: 100%;
             line-height: 1.3;
-            margin: 4px 0 2px;
+            margin: 2px 0 2px;
         }
-        .tag {
+        .file-card .path {
+            font-size: 11px;
+            color: #8a9aa8;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 6px;
+            word-break: break-all;
+        }
+        .file-card .path .separator {
+            color: #c0c8d4;
+            margin: 0 2px;
+        }
+        .file-card .tag {
             font-size: 10px;
             background: #e9ecf0;
             color: #4a5a6e;
             padding: 1px 12px;
             border-radius: 12px;
-            margin: 2px 0 8px;
+            margin: 2px 0 10px;
             text-transform: uppercase;
             letter-spacing: 0.3px;
+            align-self: flex-start;
         }
-        .download {
+        .file-card .download {
             background: #2d7aff;
             color: white;
-            padding: 4px 20px;
+            padding: 5px 20px;
             border-radius: 16px;
             text-decoration: none;
             font-size: 13px;
             transition: background 0.2s;
             font-weight: 500;
-        }
-        .download:hover { background: #1a5fd0; }
-        .empty-cat {
-            color: #8a9aa8;
-            padding: 20px 0;
             text-align: center;
-            font-style: italic;
+            margin-top: auto;
         }
+        .file-card .download:hover { background: #1a5fd0; }
+
         .loading, .error, .no-results {
             text-align: center;
             padding: 60px 0;
@@ -257,16 +244,22 @@
                 gap: 18px;
                 flex-wrap: wrap;
             }
-            .grid { grid-template-columns: 1fr 1fr; }
-            .category { padding: 16px; }
-            .toolbar { flex-direction: column; align-items: stretch; }
-            .filter-group { justify-content: center; }
+            .file-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-group {
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
 
-<!-- ===== NAVIGATION BAR ===== -->
+<!-- ===== NAVIGATION ===== -->
 <div class="top-bar">
     <div class="logo">Physics<span>Lab</span></div>
     <div class="nav-links">
@@ -276,13 +269,13 @@
     </div>
 </div>
 
-<!-- ===== PAGE HEADER ===== -->
+<!-- ===== HEADER ===== -->
 <div class="page-header">
     <h1>Learning <span>Resources</span></h1>
-    <p>Lecture notes, problem sets, and reference materials — organised by topic.</p>
+    <p>All files are shown with their full folder path — browse by category using the filters below.</p>
 </div>
 
-<!-- ===== STATS BAR ===== -->
+<!-- ===== STATS ===== -->
 <div class="stats-bar" id="statsBar">
     <span><span id="totalCats">0</span> categories</span>
     <span><span id="totalFiles">0</span> files</span>
@@ -291,37 +284,45 @@
 
 <!-- ===== TOOLBAR ===== -->
 <div class="toolbar">
-    <input class="search-box" id="searchInput" type="text" placeholder="Search by filename..." />
+    <input class="search-box" id="searchInput" type="text" placeholder="Search by filename or path..." />
     <div class="filter-group" id="filterGroup"></div>
 </div>
 
 <!-- ===== FILE LIST ===== -->
-<div id="container">
+<div id="file-container">
     <div class="loading">Loading resources...</div>
 </div>
 <div class="no-results" id="noResults">No files match your search or filter.</div>
 
 <!-- ===== FOOTER ===== -->
 <div class="footer-note">
-    PhysicsLab · built with GitHub Pages · 2026
+    PhysicsLab · GitHub Pages · 2026
 </div>
 
 <script>
-    // ====== CONFIGURATION ======
+    // ================================================================
+    //  CONFIGURATION
+    // ================================================================
     const OWNER = 'HuangZixuanCQU';
     const REPO = 'Platform-for-Better-Physics';
     const FOLDER = 'Resources';
 
-    const container = document.getElementById('container');
+    // ================================================================
+    //  STATE
+    // ================================================================
+    let allFiles = [];
+    let allCategories = new Set();
+    let currentFilter = 'All';
+    let currentSearch = '';
+
+    const container = document.getElementById('file-container');
     const searchInput = document.getElementById('searchInput');
     const filterGroup = document.getElementById('filterGroup');
     const noResults = document.getElementById('noResults');
 
-    let allCategoryData = {};
-    let allFileExtensions = new Set();
-    let currentFilter = 'All';
-    let currentSearch = '';
-
+    // ================================================================
+    //  HELPERS
+    // ================================================================
     function getFileInfo(name) {
         const ext = name.split('.').pop().toLowerCase();
         const map = {
@@ -358,6 +359,61 @@
         return (bytes / 1048576).toFixed(1) + ' MB';
     }
 
+    function getCategoryFromPath(path) {
+        const parts = path.split('/');
+        if (parts.length > 1 && parts[0] === FOLDER) {
+            return parts[1] || 'Uncategorized';
+        }
+        if (parts.length > 0 && parts[0] !== FOLDER) {
+            return parts[0] || 'Uncategorized';
+        }
+        return 'Uncategorized';
+    }
+
+    function getDisplayPath(fullPath) {
+        const parts = fullPath.split('/');
+        if (parts.length > 0 && parts[0] === FOLDER) {
+            return parts.slice(1).join('/');
+        }
+        return fullPath;
+    }
+
+    function getFolderPath(fullPath) {
+        const parts = fullPath.split('/');
+        let startIndex = 0;
+        if (parts.length > 0 && parts[0] === FOLDER) {
+            startIndex = 1;
+        }
+        const folderParts = parts.slice(startIndex, -1);
+        return folderParts.join(' / ');
+    }
+
+    // ================================================================
+    //  FETCH FILES (Recursive)
+    // ================================================================
+
+    async function fetchAllFilesRecursive(path, fileList = []) {
+        try {
+            const items = await fetchContents(path);
+            for (const item of items) {
+                if (item.type === 'file') {
+                    fileList.push({
+                        path: item.path,
+                        name: item.name,
+                        size: item.size,
+                        download_url: item.download_url,
+                        sha: item.sha,
+                    });
+                } else if (item.type === 'dir') {
+                    await fetchAllFilesRecursive(item.path, fileList);
+                }
+            }
+        } catch (err) {
+            console.warn('Error fetching', path, err);
+        }
+        return fileList;
+    }
+
     async function fetchContents(path) {
         const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
         const res = await fetch(url);
@@ -365,15 +421,16 @@
         return await res.json();
     }
 
+    // ================================================================
+    //  RENDER
+    // ================================================================
+
     function buildFilterButtons() {
-        const sortedExts = Array.from(allFileExtensions).sort();
-        let html = `<button class="filter-btn active" data-filter="All">All <span class="count">(${Object.values(allCategoryData).flat().length})</span></button>`;
-        for (const ext of sortedExts) {
-            const count = Object.values(allCategoryData).flat().filter(f => {
-                const e = f.name.split('.').pop().toLowerCase();
-                return e === ext;
-            }).length;
-            html += `<button class="filter-btn" data-filter="${ext}">${ext.toUpperCase()} <span class="count">(${count})</span></button>`;
+        const sortedCats = Array.from(allCategories).sort();
+        let html = `<button class="filter-btn active" data-filter="All">All <span class="count">(${allFiles.length})</span></button>`;
+        for (const cat of sortedCats) {
+            const count = allFiles.filter(f => f.category === cat).length;
+            html += `<button class="filter-btn" data-filter="${cat}">${cat} <span class="count">(${count})</span></button>`;
         }
         filterGroup.innerHTML = html;
 
@@ -389,68 +446,91 @@
 
     function applyFilters() {
         const searchLower = currentSearch.toLowerCase().trim();
-        let hasVisibleCards = false;
+        let hasVisible = false;
 
-        for (const [catName, files] of Object.entries(allCategoryData)) {
-            const categoryEl = document.querySelector(`.category[data-category="${CSS.escape(catName)}"]`);
-            if (!categoryEl) continue;
+        const cards = document.querySelectorAll('.file-card');
+        cards.forEach(card => {
+            const fileName = card.dataset.filename.toLowerCase();
+            const filePath = card.dataset.path.toLowerCase();
+            const fileCat = card.dataset.category;
 
-            const cards = categoryEl.querySelectorAll('.card');
-            let visibleInCategory = 0;
+            const matchesSearch = !searchLower ||
+                fileName.includes(searchLower) ||
+                filePath.includes(searchLower);
 
-            cards.forEach(card => {
-                const fileName = card.dataset.filename.toLowerCase();
-                const fileExt = card.dataset.ext;
+            const matchesFilter = currentFilter === 'All' || fileCat === currentFilter;
 
-                const matchesSearch = !searchLower || fileName.includes(searchLower);
-                const matchesExt = currentFilter === 'All' || fileExt === currentFilter;
+            const visible = matchesSearch && matchesFilter;
+            card.classList.toggle('hidden', !visible);
+            if (visible) hasVisible = true;
+        });
 
-                const visible = matchesSearch && matchesExt;
-                card.classList.toggle('hidden', !visible);
-                if (visible) {
-                    visibleInCategory++;
-                    hasVisibleCards = true;
-                }
-            });
+        noResults.style.display = hasVisible ? 'none' : 'block';
+    }
 
-            categoryEl.classList.toggle('hidden', visibleInCategory === 0);
-
-            const countSpan = categoryEl.querySelector('.count');
-            if (countSpan) {
-                const total = files.length;
-                countSpan.textContent = visibleInCategory === total 
-                    ? `${total} file${total > 1 ? 's' : ''}`
-                    : `${visibleInCategory} / ${total} file${total > 1 ? 's' : ''}`;
-            }
+    function renderFiles() {
+        if (allFiles.length === 0) {
+            container.innerHTML = `<div class="empty-cat">No resources found. Please upload files to the docs/ folder.</div>`;
+            document.getElementById('totalCats').textContent = '0';
+            document.getElementById('totalFiles').textContent = '0';
+            document.getElementById('totalSize').textContent = '0';
+            filterGroup.innerHTML = '';
+            return;
         }
 
-        noResults.style.display = hasVisibleCards ? 'none' : 'block';
+        const totalSize = allFiles.reduce((sum, f) => sum + f.size, 0);
+        document.getElementById('totalCats').textContent = allCategories.size;
+        document.getElementById('totalFiles').textContent = allFiles.length;
+        document.getElementById('totalSize').textContent = formatSize(totalSize);
+
+        allFiles.sort((a, b) => a.path.localeCompare(b.path));
+
+        let html = '<div class="file-grid">';
+        for (const file of allFiles) {
+            const info = getFileInfo(file.name);
+            const folderPath = getFolderPath(file.path);
+            const category = file.category;
+
+            const safePath = file.path.replace(/"/g, '&quot;');
+
+            html += `
+                <div class="file-card" data-filename="${file.name.toLowerCase()}" data-path="${safePath}" data-category="${category}">
+                    <div class="ext">${info.ext}</div>
+                    <div class="name">${file.name}</div>
+                    <div class="path">${folderPath || 'root'}</div>
+                    <div class="tag">${info.tag}</div>
+                    <a class="download" href="${file.download_url}" target="_blank">Download</a>
+                </div>
+            `;
+        }
+        html += '</div>';
+
+        container.innerHTML = html;
+
+        buildFilterButtons();
+
+        searchInput.addEventListener('input', function() {
+            currentSearch = this.value;
+            applyFilters();
+        });
+
+        currentFilter = 'All';
+        currentSearch = '';
+        applyFilters();
     }
+
+    // ================================================================
+    //  LOAD ALL FILES
+    // ================================================================
 
     async function loadAll() {
         try {
-            const items = await fetchContents(FOLDER);
+            container.innerHTML = '<div class="loading">Loading resources...</div>';
 
-            const folders = items.filter(item => item.type === 'dir');
-            const rootFiles = items.filter(item => item.type === 'file');
+            const files = await fetchAllFilesRecursive(FOLDER);
 
-            const categoryMap = {};
-
-            for (const folder of folders) {
-                const files = await fetchContents(`${FOLDER}/${folder.name}`);
-                const fileItems = files.filter(f => f.type === 'file');
-                if (fileItems.length > 0) {
-                    categoryMap[folder.name] = fileItems;
-                }
-            }
-
-            if (rootFiles.length > 0) {
-                categoryMap['Uncategorized'] = rootFiles;
-            }
-
-            const keys = Object.keys(categoryMap);
-            if (keys.length === 0) {
-                container.innerHTML = `<div class="empty-cat">No resources yet. Please upload files to the docs/ folder.</div>`;
+            if (files.length === 0) {
+                container.innerHTML = `<div class="empty-cat">No resources found. Please upload files to the docs/ folder.</div>`;
                 document.getElementById('totalCats').textContent = '0';
                 document.getElementById('totalFiles').textContent = '0';
                 document.getElementById('totalSize').textContent = '0';
@@ -458,67 +538,13 @@
                 return;
             }
 
-            allCategoryData = categoryMap;
-
-            allFileExtensions = new Set();
-            for (const cat of keys) {
-                for (const f of categoryMap[cat]) {
-                    const ext = f.name.split('.').pop().toLowerCase();
-                    allFileExtensions.add(ext);
-                }
-            }
-
-            let totalFileCount = 0;
-            let totalByteSize = 0;
-            for (const cat of keys) {
-                totalFileCount += categoryMap[cat].length;
-                for (const f of categoryMap[cat]) {
-                    totalByteSize += f.size;
-                }
-            }
-            document.getElementById('totalCats').textContent = keys.length;
-            document.getElementById('totalFiles').textContent = totalFileCount;
-            document.getElementById('totalSize').textContent = formatSize(totalByteSize);
-
-            const sortedKeys = keys.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
-
-            let html = '';
-            for (const catName of sortedKeys) {
-                const files = categoryMap[catName];
-                files.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
-
-                html += `<div class="category" data-category="${catName}">
-                    <h2>${catName} <span class="count">${files.length} file${files.length > 1 ? 's' : ''}</span></h2>
-                    <div class="grid">`;
-
-                for (const file of files) {
-                    const info = getFileInfo(file.name);
-                    const ext = file.name.split('.').pop().toLowerCase();
-                    html += `
-                        <div class="card" data-filename="${file.name.toLowerCase()}" data-ext="${ext}">
-                            <div class="ext">${info.ext}</div>
-                            <div class="name">${file.name}</div>
-                            <div class="tag">${info.tag}</div>
-                            <a class="download" href="${file.download_url}" target="_blank">Download</a>
-                        </div>
-                    `;
-                }
-
-                html += `</div></div>`;
-            }
-
-            container.innerHTML = html;
-
-            buildFilterButtons();
-
-            searchInput.addEventListener('input', function() {
-                currentSearch = this.value;
-                applyFilters();
+            allFiles = files.map(f => {
+                const category = getCategoryFromPath(f.path);
+                allCategories.add(category);
+                return { ...f, category };
             });
 
-            currentFilter = 'All';
-            currentSearch = '';
-            applyFilters();
+            renderFiles();
 
         } catch (err) {
             container.innerHTML = `<div class="error">Failed to load: ${err.message}</div>`;
@@ -528,9 +554,6 @@
 
     loadAll();
 </script>
-</body>
-</html>
-    loadAll();
-</script>
+
 </body>
 </html>
