@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysicsLab · Double Pendulum (PyScript)</title>
+
+    <!-- PyScript -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f5f7fa;
+            color: #1a2332;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0 16px;
+            border-bottom: 2px solid #e6edf4;
+            margin-bottom: 24px;
+        }
+        .top-bar .logo { font-size: 22px; font-weight: 600; color: #0a1a2b; }
+        .top-bar .logo span { color: #2d7aff; }
+        .top-bar .nav-links { display: flex; gap: 28px; font-size: 15px; }
+        .top-bar .nav-links a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: 0.15s;
+        }
+        .top-bar .nav-links a:hover { color: #1a5fd0; border-bottom-color: #2d7aff; }
+        .top-bar .nav-links a.active { color: #1a5fd0; border-bottom-color: #2d7aff; }
+
+        .sim-title { margin-bottom: 16px; }
+        .sim-title h1 { font-size: 26px; font-weight: 600; }
+        .sim-title h1 span { color: #2d7aff; }
+        .sim-title p { color: #4a5a6e; font-size: 15px; }
+
+        #plot-container {
+            background: #fafcff;
+            border-radius: 16px;
+            border: 1px solid #eef3f8;
+            padding: 10px;
+            margin-bottom: 16px;
+            min-height: 450px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #plot-container .loading-text { color: #6b7f94; font-size: 16px; }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 40px;
+            background: #f8faff;
+            padding: 18px 24px;
+            border-radius: 14px;
+            border: 1px solid #eef3f8;
+            margin-top: 10px;
+            align-items: center;
+        }
+        .control-group { display: flex; align-items: center; gap: 10px; }
+        .control-group label { font-size: 14px; font-weight: 500; color: #2c3e50; }
+        .control-group input[type="range"] {
+            width: 140px;
+            cursor: pointer;
+            accent-color: #2d7aff;
+        }
+        .control-group .value {
+            font-size: 14px;
+            color: #2d7aff;
+            font-weight: 600;
+            min-width: 36px;
+            text-align: center;
+        }
+        .btn-group { display: flex; gap: 10px; margin-left: auto; }
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.15s;
+            font-family: inherit;
+        }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #1e7e34; }
+        .btn-secondary { background: #e9ecf0; color: #2c3e50; }
+        .btn-secondary:hover { background: #d5dae0; }
+
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+            padding: 14px 20px;
+            background: #f8faff;
+            border-radius: 12px;
+            border: 1px solid #eef3f8;
+        }
+        .info-item { text-align: center; }
+        .info-item .label { font-size: 12px; color: #6b7f94; text-transform: uppercase; letter-spacing: 0.3px; }
+        .info-item .val { font-size: 18px; font-weight: 600; color: #1a2332; font-family: 'Courier New', monospace; }
+        .info-item .val .unit { font-size: 13px; font-weight: 400; color: #6b7f94; margin-left: 2px; }
+
+        .footer-note {
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1px solid #e6edf4;
+            font-size: 14px;
+            color: #6b7f94;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .controls { flex-direction: column; align-items: stretch; }
+            .btn-group { margin-left: 0; justify-content: center; }
+            .control-group input[type="range"] { width: 100px; }
+            .top-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .top-bar .nav-links { gap: 18px; flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-bar">
+        <div class="logo">Physics<span>Lab</span></div>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../share.html">Resources</a>
+            <a href="../simulations.html" class="active">Simulations</a>
+        </div>
+    </div>
+
+    <div class="sim-title">
+        <h1>Double <span>Pendulum</span></h1>
+        <p>Python + Matplotlib · Chaotic motion simulation</p>
+    </div>
+
+    <div id="plot-container">
+        <div class="loading-text">Loading Python and plotting...</div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>L₁</label>
+            <input type="range" id="L1Slider" min="50" max="200" value="120" step="1">
+            <span class="value" id="L1Value">120</span>
+        </div>
+        <div class="control-group">
+            <label>L₂</label>
+            <input type="range" id="L2Slider" min="50" max="200" value="100" step="1">
+            <span class="value" id="L2Value">100</span>
+        </div>
+        <div class="control-group">
+            <label>m₁</label>
+            <input type="range" id="m1Slider" min="1" max="10" value="3" step="0.5">
+            <span class="value" id="m1Value">3.0</span>
+        </div>
+        <div class="control-group">
+            <label>m₂</label>
+            <input type="range" id="m2Slider" min="1" max="10" value="2" step="0.5">
+            <span class="value" id="m2Value">2.0</span>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-success" id="updateBtn">Update</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="info-item">
+            <div class="label">Energy (E)</div>
+            <div class="val" id="energyDisplay">0.0 <span class="unit">J</span></div>
+        </div>
+        <div class="info-item">
+            <div class="label">θ₁</div>
+            <div class="val" id="theta1Display">0.0 <span class="unit">°</span></div>
+        </div>
+        <div class="info-item">
+            <div class="label">θ₂</div>
+            <div class="val" id="theta2Display">0.0 <span class="unit">°</span></div>
+        </div>
+        <div class="info-item">
+            <div class="label">Time</div>
+            <div class="val" id="timeDisplay">0.0 <span class="unit">s</span></div>
+        </div>
+    </div>
+
+    <div class="footer-note">PhysicsLab · PyScript + Matplotlib · 2026</div>
+</div>
+
+<py-script>
+    import matplotlib.pyplot as plt
+    import matplotlib.animation as animation
+    import numpy as np
+    from pyodide.ffi import create_proxy
+    from js import document
+    from matplotlib.patches import Circle
+
+    # ----------------------------------------------------------------
+    #  DOUBLE PENDULUM PHYSICS
+    # ----------------------------------------------------------------
+
+    g = 9.8  # gravity (m/s²)
+
+    def derivatives(state, L1, L2, m1, m2):
+        """Compute derivatives for double pendulum using Lagrangian mechanics."""
+        theta1, theta2, omega1, omega2 = state
+
+        dtheta1 = omega1
+        dtheta2 = omega2
+
+        # Compute angular accelerations
+        delta = theta2 - theta1
+        den1 = (m1 + m2) * L1 - m2 * L1 * np.cos(delta) * np.cos(delta)
+        domega1 = (m2 * L1 * omega1 * omega1 * np.sin(delta) * np.cos(delta) +
+                   m2 * L2 * omega2 * omega2 * np.sin(delta) +
+                   (m1 + m2) * g * np.sin(theta1) * np.cos(delta) -
+                   (m1 + m2) * g * np.sin(theta2)) / den1
+
+        den2 = (L2 / L1) * den1
+        domega2 = (-m2 * L2 * omega2 * omega2 * np.sin(delta) * np.cos(delta) +
+                   (m1 + m2) * g * np.sin(theta1) * np.cos(delta) -
+                   (m1 + m2) * g * np.sin(theta2) -
+                   (m1 + m2) * L1 * omega1 * omega1 * np.sin(delta)) / den2
+
+        return np.array([dtheta1, dtheta2, domega1, domega2])
+
+    def simulate_pendulum(L1, L2, m1, m2, dt=0.01, steps=500):
+        """Run simulation and return trajectory."""
+        # Initial conditions: start from rest with small displacement
+        state = np.array([np.radians(30), np.radians(-30), 0.0, 0.0])
+
+        times = np.linspace(0, steps * dt, steps)
+        states = np.zeros((steps, 4))
+        states[0] = state
+
+        for i in range(1, steps):
+            k1 = derivatives(state, L1, L2, m1, m2)
+            k2 = derivatives(state + 0.5 * dt * k1, L1, L2, m1, m2)
+            k3 = derivatives(state + 0.5 * dt * k2, L1, L2, m1, m2)
+            k4 = derivatives(state + dt * k3, L1, L2, m1, m2)
+            state = state + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
+            states[i] = state
+
+        return times, states
+
+    def compute_energy(theta1, theta2, omega1, omega2, L1, L2, m1, m2):
+        """Compute total mechanical energy."""
+        # Kinetic energy
+        v1x = -L1 * omega1 * np.sin(theta1)
+        v1y = L1 * omega1 * np.cos(theta1)
+        v2x = v1x - L2 * omega2 * np.sin(theta2)
+        v2y = v1y + L2 * omega2 * np.cos(theta2)
+
+        KE = 0.5 * m1 * (v1x**2 + v1y**2) + 0.5 * m2 * (v2x**2 + v2y**2)
+
+        # Potential energy (zero at pivot)
+        PE = -m1 * g * L1 * np.cos(theta1) - m2 * g * (L1 * np.cos(theta1) + L2 * np.cos(theta2))
+
+        return KE + PE
+
+    # ----------------------------------------------------------------
+    #  PLOTTING
+    # ----------------------------------------------------------------
+
+    def plot_pendulum(L1, L2, m1, m2):
+        times, states = simulate_pendulum(L1, L2, m1, m2)
+
+        theta1 = states[:, 0]
+        theta2 = states[:, 1]
+        omega1 = states[:, 2]
+        omega2 = states[:, 3]
+
+        # Positions
+        x1 = L1 * np.sin(theta1)
+        y1 = -L1 * np.cos(theta1)
+        x2 = x1 + L2 * np.sin(theta2)
+        y2 = y1 - L2 * np.cos(theta2)
+
+        # Energy
+        energy = np.array([compute_energy(t1, t2, w1, w2, L1, L2, m1, m2)
+                           for t1, t2, w1, w2 in zip(theta1, theta2, omega1, omega2)])
+
+        # Create figure with two subplots
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+
+        # ---- Left: Pendulum animation (final frame) ----
+        ax1.set_xlim(-(L1 + L2 + 20), L1 + L2 + 20)
+        ax1.set_ylim(-(L1 + L2 + 20), L1 + L2 + 20)
+        ax1.set_aspect('equal')
+        ax1.grid(True, alpha=0.3)
+        ax1.set_xlabel('x (px)')
+        ax1.set_ylabel('y (px)')
+        ax1.set_title('Double Pendulum')
+
+        # Draw pendulum at final state
+        idx = -1
+        # Rod 1
+        ax1.plot([0, x1[idx]], [0, y1[idx]], 'k-', linewidth=2)
+        # Rod 2
+        ax1.plot([x1[idx], x2[idx]], [y1[idx], y2[idx]], 'k-', linewidth=2)
+        # Pivot
+        ax1.plot(0, 0, 'ko', markersize=8)
+        # Mass 1
+        ax1.add_patch(Circle((x1[idx], y1[idx]), radius=0.15 * max(L1, L2),
+                             color='#2d7aff', alpha=0.8))
+        # Mass 2
+        ax1.add_patch(Circle((x2[idx], y2[idx]), radius=0.12 * max(L1, L2),
+                             color='#ff6b35', alpha=0.8))
+
+        # Trail
+        ax1.plot(x1, y1, color='#2d7aff', linewidth=1, alpha=0.3)
+        ax1.plot(x2, y2, color='#ff6b35', linewidth=1, alpha=0.3)
+
+        # ---- Right: Energy plot ----
+        ax2.plot(times, energy, color='#28a745', linewidth=2)
+        ax2.set_xlabel('Time (s)')
+        ax2.set_ylabel('Energy (J)')
+        ax2.set_title('Total Mechanical Energy')
+        ax2.grid(True, alpha=0.3)
+        ax2.axhline(y=energy[0], color='red', linestyle='--', alpha=0.5,
+                    label=f'Initial E = {energy[0]:.2f} J')
+        ax2.legend(fontsize=10)
+
+        # Energy conservation check
+        energy_drift = (np.max(energy) - np.min(energy)) / np.mean(energy) * 100
+        ax2.text(0.05, 0.95, f'Energy drift: {energy_drift:.2f}%',
+                 transform=ax2.transAxes, fontsize=10,
+                 verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+        plt.tight_layout()
+
+        # Update info panel
+        doc = document
+        doc.getElementById('energyDisplay').innerHTML = f'{energy[-1]:.2f} <span class="unit">J</span>'
+        doc.getElementById('theta1Display').innerHTML = f'{np.degrees(theta1[-1]):.1f} <span class="unit">°</span>'
+        doc.getElementById('theta2Display').innerHTML = f'{np.degrees(theta2[-1]):.1f} <span class="unit">°</span>'
+        doc.getElementById('timeDisplay').innerHTML = f'{times[-1]:.2f} <span class="unit">s</span>'
+
+        return fig
+
+    # ----------------------------------------------------------------
+    #  UI BINDINGS
+    # ----------------------------------------------------------------
+
+    L1_slider = document.getElementById('L1Slider')
+    L2_slider = document.getElementById('L2Slider')
+    m1_slider = document.getElementById('m1Slider')
+    m2_slider = document.getElementById('m2Slider')
+
+    def update_plot(event=None):
+        L1 = float(L1_slider.value)
+        L2 = float(L2_slider.value)
+        m1 = float(m1_slider.value)
+        m2 = float(m2_slider.value)
+
+        container = document.getElementById('plot-container')
+        container.innerHTML = '<div class="loading-text">Rendering...</div>'
+
+        try:
+            fig = plot_pendulum(L1, L2, m1, m2)
+            display(fig, target='plot-container')
+        except Exception as e:
+            container.innerHTML = f'<div style="color:red;">Error: {e}</div>'
+
+    def reset_params(event):
+        L1_slider.value = '120'
+        L2_slider.value = '100'
+        m1_slider.value = '3'
+        m2_slider.value = '2'
+        document.getElementById('L1Value').textContent = '120'
+        document.getElementById('L2Value').textContent = '100'
+        document.getElementById('m1Value').textContent = '3.0'
+        document.getElementById('m2Value').textContent = '2.0'
+        update_plot()
+
+    # Sync slider displays
+    def sync_L1(event): document.getElementById('L1Value').textContent = event.target.value
+    def sync_L2(event): document.getElementById('L2Value').textContent = event.target.value
+    def sync_m1(event): document.getElementById('m1Value').textContent = event.target.value
+    def sync_m2(event): document.getElementById('m2Value').textContent = event.target.value
+
+    L1_slider.addEventListener('input', create_proxy(sync_L1))
+    L2_slider.addEventListener('input', create_proxy(sync_L2))
+    m1_slider.addEventListener('input', create_proxy(sync_m1))
+    m2_slider.addEventListener('input', create_proxy(sync_m2))
+
+    update_btn = document.getElementById('updateBtn')
+    update_btn.addEventListener('click', create_proxy(update_plot))
+
+    reset_btn = document.getElementById('resetBtn')
+    reset_btn.addEventListener('click', create_proxy(reset_params))
+
+    # Initial plot
+    update_plot()
+</py-script>
+
+</body>
+</html>
