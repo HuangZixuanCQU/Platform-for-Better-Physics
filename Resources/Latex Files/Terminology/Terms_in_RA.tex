@@ -1,0 +1,218 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{esint}
+\usepackage[UTF8]{ctex}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage[left=1cm,right=1cm]{geometry}
+\renewcommand{\arraystretch}{1.8}
+
+\title{\huge{Terms in Real Analysis}}
+\author{Huang Zixuan 20250065}
+\date{2026.4.26}
+
+\begin{document}
+
+  \maketitle
+
+  \section{One-variable Analysis}
+  \begin{longtable}{|c|c|c|c|}
+    \caption{Terms in One-variable Analysis (单变量数学分析术语表)} \label{Tab.1} \\
+    \hline
+    Part (模块) & Terms (英语术语) & Translations (中文翻译) & Expressions (数学表达式) \\ 
+    \hline
+    \endfirsthead
+
+    \hline
+    Part (模块) & Terms (英语术语) & Translations (中文翻译) & Expressions (数学表达式) \\ 
+    \hline
+    \endhead
+
+    \hline
+    \multicolumn{4}{r}{续表} \\
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    \multirow{9}{*}{一元函数微分}
+    & derivative & 导数 & $\frac{dy}{dx}\quad f'(x)$ \\
+    \cline{2-4}
+    & slope & 斜率 & $k$ \\
+    \cline{2-4}
+    & derivative of order $n$ & $n$阶导数 & $\frac{d^{n}y}{dx^n}\quad f^{(n)}(x)$ \\
+    \cline{2-4}
+    & differential & 微分 & $dy$ \\
+    \cline{2-4}
+    & differential of order $n$ & $n$阶微分 & $d^{n}y$ \\
+    \cline{2-4}
+    & limit & 极限 & $\lim\limits_{x \to a}f(x)$ \\
+    \cline{2-4}
+    & L'Hospital rule & 洛必达法则 & $\lim\limits_{x \to 0}\frac{f}{g}=\lim\limits_{x \to 0}\frac{f'}{g'}$ \\
+    \cline{2-4}
+    & infinity & 无穷 & $\infty$ \\
+    \cline{2-4}
+    & infinitesimal quantity & 无穷小量 & $o(x^n)$ \\
+    \cline{2-4}
+    \multirow{17}{*}{一元函数微分}
+    & differentiablity & 可微性 & / \\
+    \cline{2-4}
+    & continuity & 连续性 & / \\
+    \cline{2-4}
+    & monotonicity & 单调性 & / \\
+    \cline{2-4}
+    & convexity & 凹凸性 & / \\
+    \cline{2-4}
+    & divergence & 敛散性 & / \\
+    \cline{2-4}
+    & mean value theorem & 中值定理 & / \\
+    \cline{2-4}
+    & intermediate value theorem & 介值定理 & / \\
+    \cline{2-4}
+    & Taylor's Expansion & 泰勒展开 & / \\
+    \cline{2-4}
+    & global extrema & 全局极值点 & / \\
+    \cline{2-4}
+    & local extrema & 局部极值点 & / \\
+    \cline{2-4}
+    & minimum & 极小的 & / \\
+    \cline{2-4}
+    & maximum & 极大的 & / \\
+    \cline{2-4}
+    & reflection point & 拐点 & / \\
+    \cline{2-4}
+    & stationary point & 驻点 & / \\
+    \cline{2-4}
+    & curvature & 曲率 & $\kappa$ \\
+    \cline{2-4}
+    & curvature radius & 曲率半径 & $\rho$ \\
+    \cline{2-4}
+    & osculating circle & 曲率圆 & / \\
+    \hline
+    \multirow{5}{*}{一元函数积分}
+    & definite integral & 定积分 & $\int_{a}^{b}f(x)\, dx$ \\
+    \cline{2-4}
+    & indefinite integral & 不定积分 & $\int f(x)\, dx$ \\
+    \cline{2-4}
+    & anti-derivatives & 反导数(原函数) & / \\
+    \cline{2-4}
+    & improper integral & 反常积分 & / \\
+    \cline{2-4}
+    & Cauchy's principal value & 柯西主值 & $\mathcal{P}\int f(x)\, dx$ \\
+    \hline
+    \multirow{10}{*}{级数理论}
+    & series & 级数 & $\sum\limits_{n}x_{n}$ \\
+    \cline{2-4}
+    & sequence & 数列 & $\{x_n\}$ \\
+    \cline{2-4}
+    & Leibniz's rule & 莱布尼茨法则 & / \\
+    \cline{2-4}
+    & absolute convergence & 绝对收敛 & / \\
+    \cline{2-4}
+    & conditional convergence & 条件收敛 & / \\
+    \cline{2-4}
+    & harmonic series & 调和级数 & $H_n=\sum\limits_{n}\frac{1}{n}$ \\
+    \cline{2-4}
+    & power series & 幂级数 & $P_n=\sum\limits_{n}a^n$ \\
+    \cline{2-4}
+    & Stirling's approximation & 斯塔林近似 & $n!\approx\sqrt{2\pi n}(\frac{n}{e})^n$ \\
+    \cline{2-4}
+    & Euler $\Gamma$-function & 欧拉$\Gamma$函数 & $\Gamma(x)=\int_{0}^{\infty}t^{x-1}e^{-t}\, dt$ \\
+    \cline{2-4}
+    & Euler $\beta$-function & 欧拉$\beta$函数 & $B(x,y)=\int_{0}^{1}t^{x-1}(1-t)^{y-1}\, dt$ \\  
+    \hline
+  \end{longtable}
+
+  \section{Multi-variable Analysis}
+  \begin{longtable}{|c|c|c|c|}
+    \caption{Terms in Multi-variable Analysis (多变量数学分析术语表)} \label{Tab.2} \\
+    \hline
+    Part (模块) & Terms (英语术语) & Translations (中文翻译) & Expressions (数学表达式) \\ 
+    \hline
+    \endfirsthead
+
+    \hline
+    Part (模块) & Terms (英语术语) & Translations (中文翻译) & Expressions (数学表达式) \\ 
+    \hline
+    \endhead
+
+    \hline
+    \multicolumn{4}{r}{续表} \\
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    \multirow{14}{*}{多元函数微分}
+    & total differential & 全微分 & $df$ \\
+    \cline{2-4} 
+    & partial derivative & 偏导数 & $\frac{\partial y}{\partial x}$ \\
+    \cline{2-4}
+    & diectional derivative & 方向导数 & $\frac{\partial y}{\partial \vec{v}}$ \\
+    \cline{2-4}
+    & gradient & 梯度 & $\nabla f$ \\
+    \cline{2-4}
+    & Jacobi matrix & 雅可比矩阵 & / \\
+    \cline{2-4}
+    & Jacobian & 雅可比矩阵行列式 & $J=\frac{\partial (x,y)}{\partial (\xi,\eta)}$ \\
+    \cline{2-4}
+    & Hessian & 黑塞矩阵 & $H$ \\
+    \cline{2-4}
+    & saddle point & 鞍点 & / \\
+    \cline{2-4}
+    & implicit function theorem & 隐函数定理 & / \\
+    \cline{2-4}
+    & inverse function theorem & 反函数定理 & / \\
+    \cline{2-4}
+    & manifold & 流形 & / \\
+    \cline{2-4}
+    & Lagrange multiplier & 拉格朗日乘子 & $\lambda_i$ \\
+    \cline{2-4}
+    & Lagrange function & 拉格朗日函数 & $L=f-\sum\limits_{i}\lambda_iF_i$ \\
+    \cline{2-4}
+    & constraint & 限制条件 & $F(x_1,x_2,\dots,x_n)=0$ \\
+    \hline
+    \multirow{3}{*}{多元函数积分}
+    & double integral & 二重积分 & $\iint f(x,y)\,dx\,dy$ \\
+    \cline{2-4}
+    & triple integral & 三重积分 & $\iiint f(x,y,z)\,dx\,dy\,dz$ \\
+    \cline{2-4}
+    & repeated integral & 重积分 & $\int_{y=a}^{y=b}\int_{x=\alpha}^{x=\beta}f(x,y)\,dx\,dy$ \\
+    \hline
+    & vector field & 向量场 & $\boldsymbol{f}$ \\
+    \cline{2-4}
+    \multirow{15}{*}{矢量微积分}
+    & vector field & 向量场 & $\boldsymbol{f}$ \\
+    \cline{2-4}
+    & divergence & 散度 & $\nabla \cdot \boldsymbol{f} \quad \text{div}\, \boldsymbol{f}$\\
+    \cline{2-4}
+    & curl & 旋度 & $\nabla \times \boldsymbol{f} \quad \text{curl}\, \boldsymbol{f}$ \\
+    \cline{2-4}
+    & divergence-free/solenoidal & 无散的 & $\nabla \cdot \boldsymbol{f} = 0$ \\
+    \cline{2-4}
+    & curl-free & 无旋的 & $\nabla \times \boldsymbol{f} = \boldsymbol{0}$ \\
+    \cline{2-4}
+    & conservative & 保守的 & $\oint_{L}\boldsymbol{f}\cdot d\boldsymbol{l} = 0$ \\
+    \cline{2-4}
+    & scalar potential & 标量势 & $\varphi$ \\
+    \cline{2-4}
+    & vector potential & 矢量势 & $\boldsymbol{A}$ \\
+    \cline{2-4}
+    & Laplacian & 拉普拉斯算符 & $\Delta \quad \nabla^2$ \\
+    \cline{2-4}
+    & Helmholtz equation & 亥姆霍兹方程 & $\Delta u = 0$ \\
+    \cline{2-4}
+    & harmonic function & 调和函数 & $u$ \\
+    \cline{2-4}
+    & wave equation & 波动方程 & $\Delta u = \frac{1}{c^2}\frac{\partial^2 u}{\partial t^2}$ \\
+    \cline{2-4}
+    & Green's theorem & 格林定理 & / \\
+    \cline{2-4}
+    & Gauss's theorem & 高斯定理 & $\oiint_{\partial \Sigma}\boldsymbol{f}\cdot d\boldsymbol{S}=\iiint_{\Sigma}\text{div}\, \boldsymbol{f}\,dV$ \\
+    \cline{2-4}
+    & Stokes' theorem & 斯托克斯定理 & $\oint_{\partial \Sigma}\boldsymbol{f}\cdot d\boldsymbol{l}=\iint_{\Sigma}\text{curl}\, \boldsymbol{f}\cdot dS$ \\
+    \cline{2-4}
+  \end{longtable}
+
+\end{document}
