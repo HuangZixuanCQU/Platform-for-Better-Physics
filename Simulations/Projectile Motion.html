@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhysicsLab · Projectile Motion</title>
+    <title>PhysicsLab · Projectile Motion (PyScript)</title>
 
-    <!-- p5.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js">
-    </script>
+    <!-- PyScript -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
 
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: #f5f7fa;
@@ -33,8 +29,6 @@
             padding: 30px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
         }
-
-        /* Navigation bar */
         .top-bar {
             display: flex;
             flex-wrap: wrap;
@@ -44,20 +38,9 @@
             border-bottom: 2px solid #e6edf4;
             margin-bottom: 24px;
         }
-        .top-bar .logo {
-            font-size: 22px;
-            font-weight: 600;
-            color: #0a1a2b;
-            letter-spacing: -0.3px;
-        }
-        .top-bar .logo span {
-            color: #2d7aff;
-        }
-        .top-bar .nav-links {
-            display: flex;
-            gap: 28px;
-            font-size: 15px;
-        }
+        .top-bar .logo { font-size: 22px; font-weight: 600; color: #0a1a2b; }
+        .top-bar .logo span { color: #2d7aff; }
+        .top-bar .nav-links { display: flex; gap: 28px; font-size: 15px; }
         .top-bar .nav-links a {
             color: #2c3e50;
             text-decoration: none;
@@ -66,49 +49,27 @@
             border-bottom: 2px solid transparent;
             transition: 0.15s;
         }
-        .top-bar .nav-links a:hover {
-            color: #1a5fd0;
-            border-bottom-color: #2d7aff;
-        }
-        .top-bar .nav-links a.active {
-            color: #1a5fd0;
-            border-bottom-color: #2d7aff;
-        }
+        .top-bar .nav-links a:hover { color: #1a5fd0; border-bottom-color: #2d7aff; }
+        .top-bar .nav-links a.active { color: #1a5fd0; border-bottom-color: #2d7aff; }
 
-        .sim-title {
-            margin-bottom: 16px;
-        }
-        .sim-title h1 {
-            font-size: 26px;
-            font-weight: 600;
-        }
-        .sim-title h1 span {
-            color: #2d7aff;
-        }
-        .sim-title p {
-            color: #4a5a6e;
-            font-size: 15px;
-        }
+        .sim-title { margin-bottom: 16px; }
+        .sim-title h1 { font-size: 26px; font-weight: 600; }
+        .sim-title h1 span { color: #2d7aff; }
+        .sim-title p { color: #4a5a6e; font-size: 15px; }
 
-        /* Canvas container - FIXED: no CSS stretching */
-        #canvas-container {
-            display: flex;
-            justify-content: center;
+        #plot-container {
             background: #fafcff;
             border-radius: 16px;
             border: 1px solid #eef3f8;
             padding: 10px;
             margin-bottom: 16px;
-            overflow: hidden;
+            min-height: 450px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        #canvas-container canvas {
-            display: block;
-            border-radius: 10px;
-            background: white;
-            /* No width/height override - let p5 control dimensions */
-        }
+        #plot-container .loading-text { color: #6b7f94; font-size: 16px; }
 
-        /* Controls */
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -120,17 +81,8 @@
             margin-top: 10px;
             align-items: center;
         }
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .control-group label {
-            font-size: 14px;
-            font-weight: 500;
-            color: #2c3e50;
-            min-width: 20px;
-        }
+        .control-group { display: flex; align-items: center; gap: 10px; }
+        .control-group label { font-size: 14px; font-weight: 500; color: #2c3e50; min-width: 20px; }
         .control-group input[type="range"] {
             width: 140px;
             cursor: pointer;
@@ -143,12 +95,7 @@
             min-width: 36px;
             text-align: center;
         }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-left: auto;
-        }
+        .btn-group { display: flex; gap: 10px; margin-left: auto; }
         .btn {
             padding: 8px 20px;
             border: none;
@@ -159,29 +106,11 @@
             transition: 0.15s;
             font-family: inherit;
         }
-        .btn-primary {
-            background: #2d7aff;
-            color: white;
-        }
-        .btn-primary:hover {
-            background: #1a5fd0;
-        }
-        .btn-secondary {
-            background: #e9ecf0;
-            color: #2c3e50;
-        }
-        .btn-secondary:hover {
-            background: #d5dae0;
-        }
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-        .btn-success:hover {
-            background: #1e7e34;
-        }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #1e7e34; }
+        .btn-secondary { background: #e9ecf0; color: #2c3e50; }
+        .btn-secondary:hover { background: #d5dae0; }
 
-        /* Info panel */
         .info-panel {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -192,29 +121,11 @@
             border-radius: 12px;
             border: 1px solid #eef3f8;
         }
-        .info-item {
-            text-align: center;
-        }
-        .info-item .label {
-            font-size: 12px;
-            color: #6b7f94;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .info-item .val {
-            font-size: 18px;
-            font-weight: 600;
-            color: #1a2332;
-            font-family: 'Courier New', monospace;
-        }
-        .info-item .val .unit {
-            font-size: 13px;
-            font-weight: 400;
-            color: #6b7f94;
-            margin-left: 2px;
-        }
+        .info-item { text-align: center; }
+        .info-item .label { font-size: 12px; color: #6b7f94; text-transform: uppercase; letter-spacing: 0.3px; }
+        .info-item .val { font-size: 18px; font-weight: 600; color: #1a2332; font-family: 'Courier New', monospace; }
+        .info-item .val .unit { font-size: 13px; font-weight: 400; color: #6b7f94; margin-left: 2px; }
 
-        /* Legend */
         .legend {
             display: flex;
             flex-wrap: wrap;
@@ -223,16 +134,8 @@
             font-size: 13px;
             color: #4a5a6e;
         }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .legend-item .color-box {
-            width: 20px;
-            height: 4px;
-            border-radius: 2px;
-        }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-item .color-box { width: 20px; height: 4px; border-radius: 2px; }
 
         .footer-note {
             margin-top: 32px;
@@ -244,733 +147,242 @@
         }
 
         @media (max-width: 768px) {
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .btn-group {
-                margin-left: 0;
-                justify-content: center;
-            }
-            .control-group input[type="range"] {
-                width: 100px;
-            }
-            .info-panel {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .top-bar {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-            .top-bar .nav-links {
-                gap: 18px;
-                flex-wrap: wrap;
-            }
+            .controls { flex-direction: column; align-items: stretch; }
+            .btn-group { margin-left: 0; justify-content: center; }
+            .control-group input[type="range"] { width: 100px; }
+            .top-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .top-bar .nav-links { gap: 18px; flex-wrap: wrap; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-
-        <!-- Navigation -->
-        <div class="top-bar">
-            <div class="logo">Physics<span>Lab</span></div>
-            <div class="nav-links">
-                <a href="../index.html">Home</a>
-                <a href="../share.html">Resources</a>
-                <a href="../simulations.html" class="active">Simulations</a>
-            </div>
-        </div>
-
-        <!-- Title -->
-        <div class="sim-title">
-            <h1>Projectile <span>Motion</span></h1>
-            <p>p5.js · Adjust initial velocity, angle, and gravity — watch real-time flight.</p>
-        </div>
-
-        <!-- Canvas container -->
-        <div id="canvas-container"></div>
-
-        <!-- Controls -->
-        <div class="controls">
-            <div class="control-group">
-                <label>v₀</label>
-                <input type="range" id="speedSlider" min="10" max="80" value="50" step="1">
-                <span class="value" id="speedValue">50</span>
-            </div>
-            <div class="control-group">
-                <label>θ</label>
-                <input type="range" id="angleSlider" min="5" max="85" value="45" step="1">
-                <span class="value" id="angleValue">45°</span>
-            </div>
-            <div class="control-group">
-                <label>g</label>
-                <input type="range" id="gravitySlider" min="1" max="20" value="9.8" step="0.1">
-                <span class="value" id="gravityValue">9.8</span>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-primary" id="fireBtn">Launch</button>
-                <button class="btn btn-secondary" id="resetBtn">Reset</button>
-                <button class="btn btn-secondary" id="toggleTrailBtn">Hide Trail</button>
-            </div>
-        </div>
-
-        <!-- Info panel -->
-        <div class="info-panel">
-            <div class="info-item">
-                <div class="label">Range</div>
-                <div class="val" id="rangeDisplay">0.0 <span class="unit">m</span></div>
-            </div>
-            <div class="info-item">
-                <div class="label">Max Height</div>
-                <div class="val" id="heightDisplay">0.0 <span class="unit">m</span></div>
-            </div>
-            <div class="info-item">
-                <div class="label">Time of Flight</div>
-                <div class="val" id="timeDisplay">0.0 <span class="unit">s</span></div>
-            </div>
-            <div class="info-item">
-                <div class="label">Current Speed</div>
-                <div class="val" id="speedDisplay">0.0 <span class="unit">m/s</span></div>
-            </div>
-        </div>
-
-        <!-- Legend -->
-        <div class="legend">
-            <span class="legend-item">
-                <span class="color-box" style="background:#2d7aff;"></span>
-                Trajectory
-            </span>
-            <span class="legend-item">
-                <span class="color-box" style="background:#ff6b35;"></span>
-                Velocity vector
-            </span>
-            <span class="legend-item">
-                <span class="color-box" style="background:#28a745; height:4px; border-radius:2px; border-top:2px dashed #28a745;"></span>
-                Range
-            </span>
-            <span class="legend-item">
-                <span class="color-box" style="background:#dc3545; height:4px; border-radius:2px; border-top:2px dashed #dc3545;"></span>
-                Safety parabola
-            </span>
-        </div>
-
-        <div class="footer-note">
-            PhysicsLab · p5.js · 2026
+<div class="container">
+    <div class="top-bar">
+        <div class="logo">Physics<span>Lab</span></div>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../share.html">Resources</a>
+            <a href="../simulations.html" class="active">Simulations</a>
         </div>
     </div>
 
-    <!-- ============================================================ -->
-    <!--  p5.js Sketch                                                 -->
-    <!-- ============================================================ -->
-    <script>
-        // ============================================================
-        //  GLOBAL STATE
-        // ============================================================
-        let speed = 50; // initial velocity (m/s)
-        let angle = 45; // launch angle (degrees)
-        let gravity = 9.8; // gravitational acceleration (m/s²)
-
-        let projectile = null; // current projectile object
-        let trail = []; // array of {x, y} positions
-        let showTrail = true; // toggle trail visibility
-        let isFlying = false; // is the projectile in motion?
-        let simTime = 0; // elapsed flight time (seconds)
-
-        // Scale: 1 meter = scaleFactor pixels
-        let scaleFactor = 2.5;
-        let originX, originY; // origin position on canvas (bottom-left)
-
-        // DOM element references
-        const speedSlider = document.getElementById('speedSlider');
-        const angleSlider = document.getElementById('angleSlider');
-        const gravitySlider = document.getElementById('gravitySlider');
-        const speedValue = document.getElementById('speedValue');
-        const angleValue = document.getElementById('angleValue');
-        const gravityValue = document.getElementById('gravityValue');
-        const fireBtn = document.getElementById('fireBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const toggleTrailBtn = document.getElementById('toggleTrailBtn');
-
-        const rangeDisplay = document.getElementById('rangeDisplay');
-        const heightDisplay = document.getElementById('heightDisplay');
-        const timeDisplay = document.getElementById('timeDisplay');
-        const speedDisplay = document.getElementById('speedDisplay');
-
-        // ============================================================
-        //  PHYSICS FUNCTIONS
-        // ============================================================
-
-        /** Compute range for given initial conditions */
-        function getRange(v0, thetaDeg, g) {
-            const theta = radians(thetaDeg);
-            return (v0 * v0 * sin(2 * theta)) / g;
-        }
-
-        /** Compute maximum height for given initial conditions */
-        function getMaxHeight(v0, thetaDeg, g) {
-            const theta = radians(thetaDeg);
-            return (v0 * v0 * sin(theta) * sin(theta)) / (2 * g);
-        }
-
-        /** Compute time of flight for given initial conditions */
-        function getTimeOfFlight(v0, thetaDeg, g) {
-            const theta = radians(thetaDeg);
-            return (2 * v0 * sin(theta)) / g;
-        }
-
-        /** Compute theoretical trajectory as array of {x, y} points */
-        function computeTheoreticalTrajectory(v0, thetaDeg, g, numPoints = 200) {
-            const theta = radians(thetaDeg);
-            const tFlight = getTimeOfFlight(v0, thetaDeg, g);
-            const points = [];
-            for (let i = 0; i <= numPoints; i++) {
-                const t = (i / numPoints) * tFlight;
-                const x = v0 * cos(theta) * t;
-                const y = v0 * sin(theta) * t - 0.5 * g * t * t;
-                if (y >= 0) {
-                    points.push({ x, y });
-                } else {
-                    break;
-                }
-            }
-            return points;
-        }
-
-        /** Compute safety parabola (envelope) points */
-        function computeSafetyParabola(v0, g, numPoints = 200) {
-            const maxRange = v0 * v0 / g;
-            const points = [];
-            // Positive x side
-            for (let i = 0; i <= numPoints; i++) {
-                const x = (i / numPoints) * maxRange;
-                const y = (v0 * v0) / (2 * g) - (g / (2 * v0 * v0)) * x * x;
-                if (y >= 0) points.push({ x, y });
-            }
-            return points;
-        }
-
-        // ============================================================
-        //  PROJECTILE MANAGEMENT
-        // ============================================================
-
-        /** Launch a new projectile with current settings */
-        function fireProjectile() {
-            resetSimulation();
-            const vx = speed * cos(radians(angle));
-            const vy = -speed * sin(radians(angle)); // negative because y is inverted on canvas
-            projectile = {
-                x: 0,
-                y: 0,
-                vx: vx,
-                vy: vy,
-                vx0: vx,
-                vy0: vy
-            };
-            isFlying = true;
-            simTime = 0;
-            trail = [{ x: 0, y: 0 }];
-        }
-
-        /** Reset simulation to initial state */
-        function resetSimulation() {
-            projectile = null;
-            trail = [];
-            isFlying = false;
-            simTime = 0;
-            updateTheoreticalInfo();
-            updateInfoPanel();
-        }
-
-        /** Update projectile position using Euler integration */
-        function updateProjectile(dt) {
-            if (!projectile) return;
-            // vx is constant (no air resistance)
-            projectile.vx = projectile.vx0;
-            // vy changes with gravity
-            projectile.vy = projectile.vy0 + gravity * simTime;
-            // Position from kinematic equations
-            projectile.x = projectile.vx0 * simTime;
-            projectile.y = 0.5 * gravity * simTime * simTime + projectile.vy0 * simTime;
-
-            // Clamp y >= 0 (ground)
-            if (projectile.y < 0) {
-                projectile.y = 0;
-            }
-
-            // Add to trail if moved enough distance
-            if (trail.length === 0 ||
-                dist(projectile.x, projectile.y, trail[trail.length - 1].x, trail[trail.length - 1].y) > 0.3) {
-                trail.push({ x: projectile.x, y: projectile.y });
-            }
-        }
-
-        // ============================================================
-        //  p5.js SETUP
-        // ============================================================
-
-        function setup() {
-            // CRITICAL: Disable HiDPI scaling to prevent coordinate errors
-            pixelDensity(1);
-
-            // Create fixed-size canvas
-            const canvas = createCanvas(800, 500);
-            canvas.parent('canvas-container');
-
-            // Set origin at bottom-left (physics coordinate system)
-            originX = 80;
-            originY = height - 60;
-
-            // Initialise with default parameters
-            resetSimulation();
-            updateTheoreticalInfo();
-
-            // ---- UI event listeners ----
-            speedSlider.addEventListener('input', function() {
-                speed = parseFloat(this.value);
-                speedValue.textContent = speed;
-                if (!isFlying) updateTheoreticalInfo();
-            });
-
-            angleSlider.addEventListener('input', function() {
-                angle = parseFloat(this.value);
-                angleValue.textContent = angle + '°';
-                if (!isFlying) updateTheoreticalInfo();
-            });
-
-            gravitySlider.addEventListener('input', function() {
-                gravity = parseFloat(this.value);
-                gravityValue.textContent = gravity.toFixed(1);
-                if (!isFlying) updateTheoreticalInfo();
-            });
-
-            fireBtn.addEventListener('click', fireProjectile);
-            resetBtn.addEventListener('click', resetSimulation);
-            toggleTrailBtn.addEventListener('click', function() {
-                showTrail = !showTrail;
-                this.textContent = showTrail ? 'Hide Trail' : 'Show Trail';
-            });
-        }
-
-        // ============================================================
-        //  p5.js DRAW LOOP
-        // ============================================================
-
-        function draw() {
-            background('#fafcff');
-
-            // Draw grid and axes
-            drawGrid();
-
-            // Draw safety parabola (envelope)
-            drawSafetyParabola();
-
-            // Draw theoretical trajectory (dashed preview)
-            drawTheoreticalTrajectory();
-
-            // Update physics if projectile is flying
-            if (isFlying && projectile) {
-                const dt = 0.016; // ~60fps timestep
-                simTime += dt;
-                updateProjectile(dt);
-
-                // Check if landed
-                if (projectile.y <= 0) {
-                    projectile.y = 0;
-                    isFlying = false;
-                    updateInfoPanel();
-                }
-            }
-
-            // Draw trail
-            if (showTrail && trail.length > 1) {
-                drawTrail();
-            }
-
-            // Draw projectile
-            if (projectile) {
-                drawProjectile();
-            }
-
-            // Draw velocity vector (only when flying)
-            if (projectile && isFlying) {
-                drawVelocityVector();
-            }
-
-            // Draw range marker (when landed or near ground)
-            if (projectile && projectile.y < 0.5 && projectile.x > 0) {
-                drawRangeMarker();
-            }
-
-            // Update info panel if flying
-            if (isFlying) {
-                updateInfoPanel();
-            }
-        }
-
-        // ============================================================
-        //  DRAWING FUNCTIONS
-        // ============================================================
-
-        /** Draw coordinate grid and axes */
-        function drawGrid() {
-            push();
-            stroke(220, 225, 235);
-            strokeWeight(0.5);
-            // Vertical grid lines
-            for (let x = 0; x <= width - originX; x += 50) {
-                line(originX + x, 0, originX + x, height - originY);
-            }
-            // Horizontal grid lines
-            for (let y = 0; y <= height - originY; y += 50) {
-                line(originX, height - originY - y, width, height - originY - y);
-            }
-            pop();
-
-            // Axes
-            push();
-            stroke(60, 70, 90);
-            strokeWeight(2);
-            line(originX, height - originY, width, height - originY); // X axis
-            line(originX, 0, originX, height - originY); // Y axis
-            pop();
-
-            // Axis labels
-            push();
-            fill(60, 70, 90);
-            noStroke();
-            textSize(13);
-            textAlign(CENTER, TOP);
-            text('Range (m)', width / 2, height - originY + 10);
-            textAlign(RIGHT, CENTER);
-            text('Height (m)', originX - 20, height / 2);
-            pop();
-
-            // Origin label
-            push();
-            fill(60, 70, 90);
-            noStroke();
-            textSize(12);
-            textAlign(RIGHT, TOP);
-            text('O', originX - 6, height - originY + 4);
-            pop();
-        }
-
-        /** Draw theoretical trajectory (dashed blue preview) */
-        function drawTheoreticalTrajectory() {
-            const v0 = speed;
-            const theta = angle;
-            const g = gravity;
-            const range = getRange(v0, theta, g);
-            const maxH = getMaxHeight(v0, theta, g);
-
-            if (range <= 0 || maxH <= 0) return;
-
-            const points = computeTheoreticalTrajectory(v0, theta, g);
-
-            push();
-            noFill();
-            stroke(100, 130, 200, 150);
-            strokeWeight(1.8);
-            setLineDash([6, 6]);
-
-            beginShape();
-            for (const p of points) {
-                const px = originX + p.x * scaleFactor;
-                const py = height - originY - p.y * scaleFactor;
-                if (p.y >= 0 && px <= width && py >= 0) {
-                    vertex(px, py);
-                }
-            }
-            endShape();
-            pop();
-            resetLineDash();
-
-            // Also show a "ghost" version for parts beyond current position
-            if (projectile && projectile.x > 0 && projectile.x < range) {
-                push();
-                stroke(100, 130, 200, 60);
-                strokeWeight(1);
-                setLineDash([4, 6]);
-                beginShape();
-                let started = false;
-                for (const p of points) {
-                    if (p.x < projectile.x) continue;
-                    if (!started) { started = true; }
-                    const px = originX + p.x * scaleFactor;
-                    const py = height - originY - p.y * scaleFactor;
-                    if (p.y >= 0 && px <= width && py >= 0) {
-                        vertex(px, py);
-                    }
-                }
-                endShape();
-                pop();
-                resetLineDash();
-            }
-        }
-
-        /** Draw safety parabola (red dashed envelope) */
-        function drawSafetyParabola() {
-            const v0 = speed;
-            const g = gravity;
-            const points = computeSafetyParabola(v0, g);
-
-            push();
-            noFill();
-            stroke(220, 60, 80, 180);
-            strokeWeight(1.8);
-            setLineDash([8, 6]);
-
-            // Positive x side
-            beginShape();
-            for (const p of points) {
-                const px = originX + p.x * scaleFactor;
-                const py = height - originY - p.y * scaleFactor;
-                if (p.y >= 0 && px <= width && py >= 0) {
-                    vertex(px, py);
-                }
-            }
-            endShape();
-
-            // Negative x side (symmetric)
-            beginShape();
-            for (const p of points) {
-                const px = originX - p.x * scaleFactor;
-                const py = height - originY - p.y * scaleFactor;
-                if (p.y >= 0 && px >= 0 && py >= 0) {
-                    vertex(px, py);
-                }
-            }
-            endShape();
-            pop();
-            resetLineDash();
-
-            // Label
-            push();
-            fill(220, 60, 80, 200);
-            noStroke();
-            textSize(11);
-            textAlign(LEFT, BOTTOM);
-            const labelIdx = Math.floor(points.length * 0.3);
-            if (labelIdx < points.length) {
-                const p = points[labelIdx];
-                const lx = originX + p.x * scaleFactor;
-                const ly = height - originY - p.y * scaleFactor;
-                text('Safety parabola', lx + 6, ly - 4);
-            }
-            pop();
-        }
-
-        /** Draw the flight trail */
-        function drawTrail() {
-            push();
-            noFill();
-            stroke(45, 120, 255, 150);
-            strokeWeight(2.5);
-            strokeCap(ROUND);
-            strokeJoin(ROUND);
-
-            beginShape();
-            for (const p of trail) {
-                const px = originX + p.x * scaleFactor;
-                const py = height - originY - p.y * scaleFactor;
-                vertex(px, py);
-            }
-            endShape();
-
-            // Glow effect (transparent wider line)
-            stroke(45, 120, 255, 35);
-            strokeWeight(6);
-            beginShape();
-            for (const p of trail) {
-                const px = originX + p.x * scaleFactor;
-                const py = height - originY - p.y * scaleFactor;
-                vertex(px, py);
-            }
-            endShape();
-            pop();
-        }
-
-        /** Draw the projectile as a glowing ball */
-        function drawProjectile() {
-            if (!projectile) return;
-            const px = originX + projectile.x * scaleFactor;
-            const py = height - originY - projectile.y * scaleFactor;
-
-            // Glow
-            push();
-            noStroke();
-            fill(45, 120, 255, 40);
-            ellipse(px, py, 28, 28);
-            pop();
-
-            // Main ball
-            push();
-            noStroke();
-            fill(45, 120, 255);
-            ellipse(px, py, 14, 14);
-            // Highlight
-            fill(255, 255, 255, 120);
-            ellipse(px - 2, py - 3, 5, 4);
-            pop();
-        }
-
-        /** Draw velocity vector with components */
-        function drawVelocityVector() {
-            if (!projectile || !isFlying) return;
-            const px = originX + projectile.x * scaleFactor;
-            const py = height - originY - projectile.y * scaleFactor;
-
-            const speedMag = sqrt(projectile.vx * projectile.vx + projectile.vy * projectile.vy);
-            if (speedMag < 0.1) return;
-
-            const scale = 3.5;
-            const dx = projectile.vx * scale;
-            const dy = -projectile.vy * scale; // flip because canvas y is inverted
-
-            const endX = px + dx;
-            const endY = py + dy;
-
-            // Main vector line
-            push();
-            stroke(255, 107, 53);
-            strokeWeight(2.5);
-            line(px, py, endX, endY);
-            pop();
-
-            // Arrowhead
-            push();
-            fill(255, 107, 53);
-            noStroke();
-            const arrowAngle = atan2(dy, dx);
-            const headLen = 10;
-            translate(endX, endY);
-            rotate(arrowAngle);
-            triangle(0, 0, -headLen, -headLen * 0.4, -headLen, headLen * 0.4);
-            pop();
-
-            // Speed label
-            push();
-            fill(255, 107, 53);
-            noStroke();
-            textSize(11);
-            textAlign(LEFT, BOTTOM);
-            text('v = ' + speedMag.toFixed(1) + ' m/s', endX + 8, endY - 6);
-            pop();
-
-            // Component lines (vx, vy) — dashed
-            push();
-            stroke(255, 107, 53, 80);
-            strokeWeight(1);
-            setLineDash([4, 4]);
-            line(px, py, endX, py); // vx component (horizontal)
-            line(endX, py, endX, endY); // vy component (vertical)
-            pop();
-            resetLineDash();
-
-            // Component labels
-            push();
-            fill(255, 107, 53, 160);
-            noStroke();
-            textSize(10);
-            textAlign(CENTER, TOP);
-            const midX = (px + endX) / 2;
-            const midY = (py + endY) / 2;
-            text('v_x=' + projectile.vx.toFixed(1), midX, py + 6);
-            textAlign(RIGHT, CENTER);
-            text('v_y=' + projectile.vy.toFixed(1), endX - 6, midY);
-            pop();
-        }
-
-        /** Draw range marker on the ground */
-        function drawRangeMarker() {
-            if (!projectile) return;
-            if (projectile.y > 0.5) return;
-
-            const px = originX + projectile.x * scaleFactor;
-            const py = height - originY;
-
-            // Vertical dashed line from projectile to ground
-            push();
-            stroke(40, 167, 69, 100);
-            strokeWeight(1);
-            setLineDash([4, 4]);
-            line(px, height - originY - projectile.y * scaleFactor, px, height - originY);
-            pop();
-            resetLineDash();
-
-            // Range label
-            push();
-            fill(40, 167, 69);
-            noStroke();
-            textSize(13);
-            textAlign(CENTER, TOP);
-            text('R = ' + projectile.x.toFixed(1) + ' m', px, py + 6);
-            pop();
-
-            // Small tick mark on ground
-            push();
-            stroke(40, 167, 69);
-            strokeWeight(2);
-            line(px, py - 6, px, py + 6);
-            pop();
-        }
-
-        // ============================================================
-        //  INFO PANEL UPDATES
-        // ============================================================
-
-        /** Update info panel with theoretical values (no projectile) */
-        function updateTheoreticalInfo() {
-            const v0 = speed;
-            const theta = angle;
-            const g = gravity;
-            const range = getRange(v0, theta, g);
-            const maxH = getMaxHeight(v0, theta, g);
-            const time = getTimeOfFlight(v0, theta, g);
-
-            rangeDisplay.innerHTML = range.toFixed(1) + ' <span class="unit">m</span>';
-            heightDisplay.innerHTML = maxH.toFixed(1) + ' <span class="unit">m</span>';
-            timeDisplay.innerHTML = time.toFixed(2) + ' <span class="unit">s</span>';
-            speedDisplay.innerHTML = v0.toFixed(1) + ' <span class="unit">m/s</span>';
-        }
-
-        /** Update info panel with actual projectile values */
-        function updateInfoPanel() {
-            if (!projectile) {
-                updateTheoreticalInfo();
-                return;
-            }
-            const speedMag = sqrt(projectile.vx * projectile.vx + projectile.vy * projectile.vy);
-            rangeDisplay.innerHTML = projectile.x.toFixed(1) + ' <span class="unit">m</span>';
-            heightDisplay.innerHTML = projectile.y.toFixed(1) + ' <span class="unit">m</span>';
-            timeDisplay.innerHTML = simTime.toFixed(2) + ' <span class="unit">s</span>';
-            speedDisplay.innerHTML = speedMag.toFixed(1) + ' <span class="unit">m/s</span>';
-        }
-
-        // ============================================================
-        //  UTILITY FUNCTIONS
-        // ============================================================
-
-        /** Set line dash pattern for drawingContext */
-        function setLineDash(pattern) {
-            drawingContext.setLineDash(pattern);
-        }
-
-        /** Reset line dash to solid */
-        function resetLineDash() {
-            drawingContext.setLineDash([]);
-        }
-
-        /** Handle window resize — keep canvas fixed */
-        function windowResized() {
-            // Canvas stays fixed at 800x500; no action needed.
-            // This prevents automatic resizing that causes coordinate issues.
-        }
-    </script>
-
+    <div class="sim-title">
+        <h1>Projectile <span>Motion</span></h1>
+        <p>Python + Matplotlib · Adjust initial velocity, angle, and gravity</p>
+    </div>
+
+    <div id="plot-container">
+        <div class="loading-text">Loading Python and plotting...</div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>v₀</label>
+            <input type="range" id="speedSlider" min="10" max="80" value="50" step="1">
+            <span class="value" id="speedValue">50</span>
+        </div>
+        <div class="control-group">
+            <label>θ</label>
+            <input type="range" id="angleSlider" min="5" max="85" value="45" step="1">
+            <span class="value" id="angleValue">45°</span>
+        </div>
+        <div class="control-group">
+            <label>g</label>
+            <input type="range" id="gravitySlider" min="1" max="20" value="9.8" step="0.1">
+            <span class="value" id="gravityValue">9.8</span>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-success" id="updateBtn">Update</button>
+            <button class="btn btn-secondary" id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="info-item">
+            <div class="label">Range</div>
+            <div class="val" id="rangeDisplay">0.0 <span class="unit">m</span></div>
+        </div>
+        <div class="info-item">
+            <div class="label">Max Height</div>
+            <div class="val" id="heightDisplay">0.0 <span class="unit">m</span></div>
+        </div>
+        <div class="info-item">
+            <div class="label">Time of Flight</div>
+            <div class="val" id="timeDisplay">0.0 <span class="unit">s</span></div>
+        </div>
+        <div class="info-item">
+            <div class="label">Initial Speed</div>
+            <div class="val" id="speedDisplay">0.0 <span class="unit">m/s</span></div>
+        </div>
+    </div>
+
+    <div class="legend">
+        <span class="legend-item">
+            <span class="color-box" style="background:#2d7aff;"></span>
+            Trajectory
+        </span>
+        <span class="legend-item">
+            <span class="color-box" style="background:#dc3545; height:4px; border-radius:2px; border-top:2px dashed #dc3545;"></span>
+            Safety parabola
+        </span>
+        <span class="legend-item">
+            <span class="color-box" style="background:#28a745; height:4px; border-radius:2px; border-top:2px dashed #28a745;"></span>
+            Range
+        </span>
+        <span class="legend-item">
+            <span class="color-box" style="background:#ffc107; height:4px; border-radius:2px; border-top:2px dashed #ffc107;"></span>
+            Max height
+        </span>
+    </div>
+
+    <div class="footer-note">PhysicsLab · PyScript + Matplotlib · 2026</div>
+</div>
+
+<py-script>
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from pyodide.ffi import create_proxy
+    from js import document
+
+    # ----------------------------------------------------------------
+    #  PHYSICS
+    # ----------------------------------------------------------------
+
+    def get_range(v0, theta_deg, g):
+        theta = np.radians(theta_deg)
+        return (v0**2 * np.sin(2 * theta)) / g
+
+    def get_max_height(v0, theta_deg, g):
+        theta = np.radians(theta_deg)
+        return (v0**2 * np.sin(theta)**2) / (2 * g)
+
+    def get_time_of_flight(v0, theta_deg, g):
+        theta = np.radians(theta_deg)
+        return (2 * v0 * np.sin(theta)) / g
+
+    def compute_trajectory(v0, theta_deg, g, num_points=300):
+        theta = np.radians(theta_deg)
+        t_flight = get_time_of_flight(v0, theta_deg, g)
+        t = np.linspace(0, t_flight, num_points)
+        x = v0 * np.cos(theta) * t
+        y = v0 * np.sin(theta) * t - 0.5 * g * t**2
+        y = np.maximum(y, 0)
+        return x, y
+
+    def compute_safety_parabola(v0, g, num_points=200):
+        max_range = v0**2 / g
+        x = np.linspace(0, max_range, num_points)
+        y = (v0**2) / (2*g) - (g / (2 * v0**2)) * x**2
+        x_neg = np.linspace(-max_range, 0, num_points)
+        y_neg = (v0**2) / (2*g) - (g / (2 * v0**2)) * x_neg**2
+        return np.concatenate([x_neg, x]), np.concatenate([y_neg, y])
+
+    # ----------------------------------------------------------------
+    #  PLOTTING
+    # ----------------------------------------------------------------
+
+    def plot_projectile(v0, theta_deg, g):
+        x, y = compute_trajectory(v0, theta_deg, g)
+        x_safe, y_safe = compute_safety_parabola(v0, g)
+        range_val = get_range(v0, theta_deg, g)
+        max_h = get_max_height(v0, theta_deg, g)
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.set_xlim(-10, max(v0**2/g * 1.15, 100))
+        ax.set_ylim(-5, max(v0**2/(2*g) * 1.3, 50))
+
+        ax.grid(True, linestyle='--', alpha=0.3, color='#cccccc')
+        ax.set_xlabel('Range (m)', fontsize=12)
+        ax.set_ylabel('Height (m)', fontsize=12)
+        ax.set_title(f'Projectile Motion: v₀ = {v0} m/s, θ = {theta_deg}°, g = {g} m/s²', fontsize=14)
+
+        # Trajectory
+        ax.plot(x, y, color='#2d7aff', linewidth=3, label='Trajectory')
+
+        # Safety parabola
+        ax.plot(x_safe, y_safe, color='#dc3545', linewidth=2, linestyle='--', label='Safety parabola')
+
+        # Range marker
+        if range_val > 0 and range_val <= ax.get_xlim()[1]:
+            ax.axvline(x=range_val, color='#28a745', linestyle='--', linewidth=1.5, alpha=0.7)
+            ax.text(range_val, -4, f'R = {range_val:.1f} m', color='#28a745',
+                    fontsize=11, ha='center', fontweight='bold')
+
+        # Max height marker
+        if max_h > 0 and max_h <= ax.get_ylim()[1]:
+            ax.axhline(y=max_h, color='#ffc107', linestyle='--', linewidth=1.5, alpha=0.7)
+            ax.text(ax.get_xlim()[0] + 2, max_h + 1, f'H_max = {max_h:.1f} m',
+                    color='#ffc107', fontsize=11, fontweight='bold')
+
+        ax.fill_between(x, 0, y, color='#2d7aff', alpha=0.08)
+        ax.plot(0, 0, 'ko', markersize=6)
+        ax.legend(loc='upper right', fontsize=11, framealpha=0.9)
+
+        return fig
+
+    # ----------------------------------------------------------------
+    #  UI BINDINGS
+    # ----------------------------------------------------------------
+
+    speed_slider = document.getElementById('speedSlider')
+    angle_slider = document.getElementById('angleSlider')
+    gravity_slider = document.getElementById('gravitySlider')
+
+    def update_plot(event=None):
+        v0 = float(speed_slider.value)
+        theta = float(angle_slider.value)
+        g = float(gravity_slider.value)
+
+        container = document.getElementById('plot-container')
+        container.innerHTML = '<div class="loading-text">Rendering...</div>'
+
+        try:
+            fig = plot_projectile(v0, theta, g)
+            display(fig, target='plot-container')
+        except Exception as e:
+            container.innerHTML = f'<div style="color:red;">Error: {e}</div>'
+
+        # Update info panel
+        range_val = get_range(v0, theta, g)
+        max_h = get_max_height(v0, theta, g)
+        t_flight = get_time_of_flight(v0, theta, g)
+
+        document.getElementById('rangeDisplay').innerHTML = f'{range_val:.1f} <span class="unit">m</span>'
+        document.getElementById('heightDisplay').innerHTML = f'{max_h:.1f} <span class="unit">m</span>'
+        document.getElementById('timeDisplay').innerHTML = f'{t_flight:.2f} <span class="unit">s</span>'
+        document.getElementById('speedDisplay').innerHTML = f'{v0:.1f} <span class="unit">m/s</span>'
+
+    def reset_params(event):
+        speed_slider.value = '50'
+        angle_slider.value = '45'
+        gravity_slider.value = '9.8'
+        document.getElementById('speedValue').textContent = '50'
+        document.getElementById('angleValue').textContent = '45°'
+        document.getElementById('gravityValue').textContent = '9.8'
+        update_plot()
+
+    # Sync slider displays
+    def sync_speed(event): document.getElementById('speedValue').textContent = event.target.value
+    def sync_angle(event): document.getElementById('angleValue').textContent = event.target.value + '°'
+    def sync_gravity(event): document.getElementById('gravityValue').textContent = event.target.value
+
+    speed_slider.addEventListener('input', create_proxy(sync_speed))
+    angle_slider.addEventListener('input', create_proxy(sync_angle))
+    gravity_slider.addEventListener('input', create_proxy(sync_gravity))
+
+    update_btn = document.getElementById('updateBtn')
+    update_btn.addEventListener('click', create_proxy(update_plot))
+
+    reset_btn = document.getElementById('resetBtn')
+    reset_btn.addEventListener('click', create_proxy(reset_params))
+
+    # Initial plot
+    update_plot()
+</py-script>
+
+</body>
+</html>
 </body>
 </html>
 </body>
