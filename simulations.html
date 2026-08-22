@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysicsLab · Simulations</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 24px 60px;
+            background: #f8faff;
+            color: #1a2332;
+            line-height: 1.6;
+        }
+
+        /* Top navigation bar */
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0 16px;
+            border-bottom: 2px solid #e6edf4;
+            margin-bottom: 32px;
+        }
+        .top-bar .logo {
+            font-size: 22px;
+            font-weight: 600;
+            color: #0a1a2b;
+            letter-spacing: -0.3px;
+        }
+        .top-bar .logo span {
+            color: #2d7aff;
+        }
+        .top-bar .nav-links {
+            display: flex;
+            gap: 28px;
+            font-size: 15px;
+        }
+        .top-bar .nav-links a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: 0.15s;
+        }
+        .top-bar .nav-links a:hover {
+            color: #1a5fd0;
+            border-bottom-color: #2d7aff;
+        }
+        .top-bar .nav-links a.active {
+            color: #1a5fd0;
+            border-bottom-color: #2d7aff;
+        }
+
+        /* Page header */
+        .page-header {
+            margin-bottom: 32px;
+        }
+        .page-header h1 {
+            font-size: 30px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .page-header h1 span {
+            color: #2d7aff;
+        }
+        .page-header p {
+            color: #4a5a6e;
+            font-size: 16px;
+        }
+
+        /* Simulation grid */
+        .sim-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-top: 8px;
+        }
+        .sim-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px 24px 26px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            border: 1px solid #eef3f8;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .sim-card:hover {
+            border-color: #c0d6f0;
+            box-shadow: 0 6px 20px rgba(45, 122, 255, 0.06);
+            transform: translateY(-3px);
+        }
+        .sim-card .preview {
+            width: 100%;
+            height: 160px;
+            background: #eef3f8;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8a9aa8;
+            font-size: 14px;
+            font-weight: 500;
+            overflow: hidden;
+            position: relative;
+        }
+        .sim-card .preview .placeholder-icon {
+            font-size: 48px;
+            font-weight: 300;
+            color: #b0c4d8;
+            font-family: 'Courier New', monospace;
+        }
+        .sim-card .preview .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ffc107;
+            color: #1a2332;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 12px;
+            letter-spacing: 0.3px;
+        }
+        .sim-card .preview .status-badge.ready {
+            background: #28a745;
+            color: white;
+        }
+        .sim-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .sim-card .topic {
+            font-size: 13px;
+            color: #2d7aff;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        .sim-card p {
+            color: #4a5a6e;
+            font-size: 14px;
+            margin-bottom: 14px;
+            flex: 1;
+        }
+        .sim-card .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+        .sim-card .card-footer .tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .sim-card .card-footer .tags span {
+            background: #e9ecf0;
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            color: #4a5a6e;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .sim-card .card-footer a {
+            color: #2d7aff;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .sim-card .card-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* "Coming soon" state */
+        .sim-card.coming .preview {
+            opacity: 0.6;
+        }
+        .sim-card.coming .card-footer a {
+            color: #8a9aa8;
+            cursor: default;
+        }
+        .sim-card.coming .card-footer a:hover {
+            text-decoration: none;
+        }
+
+        /* Footer */
+        .footer-note {
+            margin-top: 48px;
+            padding-top: 16px;
+            border-top: 1px solid #e6edf4;
+            font-size: 14px;
+            color: #6b7f94;
+            text-align: center;
+        }
+
+        @media (max-width: 640px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .top-bar .nav-links {
+                gap: 18px;
+                flex-wrap: wrap;
+            }
+            .sim-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== Navigation Bar ===== -->
+<div class="top-bar">
+    <div class="logo">Physics<span>Lab</span></div>
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="share.html">Resources</a>
+        <a href="simulations.html" class="active">Simulations</a>
+    </div>
+</div>
+
+<!-- ===== Page Header ===== -->
+<div class="page-header">
+    <h1>Interactive <span>Simulations</span></h1>
+    <p>Run physics experiments in your browser — no installation required.</p>
+</div>
+
+<!-- ===== Simulation Cards ===== -->
+<div class="sim-grid">
+
+    <!-- Card 1: Classical Mechanics -->
+    <div class="sim-card">
+        <div class="preview">
+            <span class="placeholder-icon">MEC</span>
+            <span class="status-badge ready">Ready</span>
+        </div>
+        <h3>Projectile Motion</h3>
+        <div class="topic">Classical Mechanics</div>
+        <p>Simulate 2D projectile motion with adjustable initial velocity, angle, and gravity. Visualise trajectory and energy components.</p>
+        <div class="card-footer">
+            <div class="tags">
+                <span>2D</span>
+                <span>Kinematics</span>
+            </div>
+            <a href="#">Launch →</a>
+        </div>
+    </div>
+
+    <!-- Card 2: Electromagnetism -->
+    <div class="sim-card">
+        <div class="preview">
+            <span class="placeholder-icon">EMF</span>
+            <span class="status-badge ready">Ready</span>
+        </div>
+        <h3>Electric Field Visualiser</h3>
+        <div class="topic">Electromagnetism</div>
+        <p>Visualise electric field lines and equipotential surfaces for point charges, dipoles, and custom charge configurations.</p>
+        <div class="card-footer">
+            <div class="tags">
+                <span>3D</span>
+                <span>Fields</span>
+            </div>
+            <a href="#">Launch →</a>
+        </div>
+    </div>
+
+    <!-- Card 3: Waves & Oscillations -->
+    <div class="sim-card">
+        <div class="preview">
+            <span class="placeholder-icon">WAV</span>
+            <span class="status-badge ready">Ready</span>
+        </div>
+        <h3>Wave Interference</h3>
+        <div class="topic">Waves &amp; Optics</div>
+        <p>Explore double-slit and diffraction patterns. Adjust wavelength, slit separation, and observe interference in real time.</p>
+        <div class="card-footer">
+            <div class="tags">
+                <span>2D</span>
+                <span>Optics</span>
+            </div>
+            <a href="#">Launch →</a>
+        </div>
+    </div>
+
+    <!-- Card 4: Thermodynamics (Coming Soon) -->
+    <div class="sim-card coming">
+        <div class="preview">
+            <span class="placeholder-icon">THM</span>
+            <span class="status-badge">Coming</span>
+        </div>
+        <h3>Ideal Gas Simulator</h3>
+        <div class="topic">Thermodynamics</div>
+        <p>Molecular dynamics simulation of an ideal gas. Adjust temperature and volume to observe pressure and energy distributions.</p>
+        <div class="card-footer">
+            <div class="tags">
+                <span>3D</span>
+                <span>Statistical</span>
+            </div>
+            <a href="#">In development</a>
+        </div>
+    </div>
+
+    <!-- Card 5: Quantum Mechanics (Coming Soon) -->
+    <div class="sim-card coming">
+        <div class="preview">
+            <span class="placeholder-icon">QTM</span>
+            <span class="status-badge">Coming</span>
+        </div>
+        <h3>Quantum Wavefunction</h3>
+        <div class="topic">Quantum Mechanics</div>
+        <p>Visualise the time evolution of a quantum wavefunction in a harmonic oscillator potential and finite square well.</p>
+        <div class="card-footer">
+            <div class="tags">
+                <span>1D</span>
+                <span>Schrödinger</span>
+            </div>
+            <a href="#">In development</a>
+        </div>
+    </div>
+
+    <!-- Card 6: Astrophysics (Coming Soon) -->
+    <div class="sim-card coming">
+        <div class="preview">
+            <span class="placeholder-icon">AST</span>
+            <span class="status-badge">Coming</span>
+        </div>
+        <h3>N-Body Gravitational Simulator</h3>
+        <div class="topic">Astrophysics</div>
+        <p>Simulate gravitational interactions between multiple bodies. Observe orbital dynamics, collisions, and chaotic systems.</p>
+        <div class="card-footer">
+            <div class="tags">
+                <span>2D</span>
+                <span>Gravity</span>
+            </div>
+            <a href="#">In development</a>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== Footer ===== -->
+<div class="footer-note">
+    PhysicsLab · built with GitHub Pages · 2026
+</div>
+
+</body>
+</html>
