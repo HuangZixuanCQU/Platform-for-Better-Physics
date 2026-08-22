@@ -1,2 +1,231 @@
-<h1>Platform for Better Physics</h1>
-<h2>A platform for students majoring in physics / physics professional to study better physics</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysicsPlatform · Home</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 24px 60px;
+            background: #f8faff;
+            color: #1a2332;
+            line-height: 1.6;
+        }
+        /* Top navigation bar */
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0 16px;
+            border-bottom: 2px solid #e6edf4;
+            margin-bottom: 32px;
+        }
+        .top-bar .logo {
+            font-size: 22px;
+            font-weight: 600;
+            color: #0a1a2b;
+            letter-spacing: -0.3px;
+        }
+        .top-bar .logo span {
+            color: #2d7aff;
+        }
+        .top-bar .nav-links {
+            display: flex;
+            gap: 28px;
+            font-size: 15px;
+        }
+        .top-bar .nav-links a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: 0.15s;
+        }
+        .top-bar .nav-links a:hover {
+            color: #1a5fd0;
+            border-bottom-color: #2d7aff;
+        }
+        .top-bar .nav-links a.active {
+            color: #1a5fd0;
+            border-bottom-color: #2d7aff;
+        }
+
+        /* Hero section */
+        .hero {
+            background: linear-gradient(145deg, #ffffff, #f2f7fe);
+            border-radius: 24px;
+            padding: 44px 48px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 16px rgba(0, 20, 40, 0.04);
+        }
+        .hero h1 {
+            font-size: 34px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        .hero h1 span {
+            color: #2d7aff;
+        }
+        .hero .sub {
+            font-size: 18px;
+            color: #3a4a5e;
+            margin-bottom: 14px;
+        }
+        .hero p {
+            color: #3d4f64;
+            max-width: 680px;
+            font-size: 15px;
+        }
+        .hero .quick-link {
+            display: inline-block;
+            margin-top: 18px;
+            background: #2d7aff;
+            color: white;
+            padding: 10px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+        .hero .quick-link:hover {
+            background: #1a5fd0;
+        }
+
+        /* Feature cards grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-top: 8px;
+        }
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 28px 28px 30px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid #eef3f8;
+            transition: 0.2s;
+        }
+        .feature-card:hover {
+            border-color: #c0d6f0;
+            box-shadow: 0 6px 20px rgba(45, 122, 255, 0.06);
+            transform: translateY(-3px);
+        }
+        .feature-card .icon {
+            font-size: 28px;
+            font-weight: 300;
+            color: #2d7aff;
+            margin-bottom: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .feature-card p {
+            color: #3d4f64;
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+        .feature-card a {
+            color: #2d7aff;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .feature-card a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        .footer-note {
+            margin-top: 48px;
+            padding-top: 16px;
+            border-top: 1px solid #e6edf4;
+            font-size: 14px;
+            color: #6b7f94;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .top-bar .nav-links {
+                gap: 18px;
+                flex-wrap: wrap;
+            }
+            .hero {
+                padding: 28px 20px;
+            }
+            .hero h1 {
+                font-size: 27px;
+            }
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== Navigation Bar ===== -->
+<div class="top-bar">
+    <div class="logo">Physics<span>Lab</span></div>
+    <div class="nav-links">
+        <a href="index.html" class="active">Home</a>
+        <a href="share.html">Resources</a>
+        <a href="#">Simulations</a>
+    </div>
+</div>
+
+<!-- ===== Hero Section ===== -->
+<div class="hero">
+    <h1>Welcome to <span>PhysicsLab</span></h1>
+    <div class="sub">Interactive simulations · Open learning resources</div>
+    <p>
+        A curated platform for physics students — explore interactive simulations
+        and access a library of lecture notes, problem sets, and reference materials.
+    </p>
+    <a class="quick-link" href="share.html">Browse Resources →</a>
+</div>
+
+<!-- ===== Feature Cards ===== -->
+<div class="feature-grid">
+    <div class="feature-card">
+        <div class="icon">LIB</div>
+        <h3>Learning Resources</h3>
+        <p>PDFs, lecture notes, LaTeX drafts, and markdown summaries — organised by topic for easy access.</p>
+        <a href="share.html">Go to Library →</a>
+    </div>
+    <div class="feature-card">
+        <div class="icon">SIM</div>
+        <h3>Simulations</h3>
+        <p>Interactive physics simulations — from classical mechanics to electromagnetism. Run in your browser.</p>
+        <a href="#">Explore (coming soon)</a>
+    </div>
+</div>
+
+<!-- ===== Footer ===== -->
+<div class="footer-note">
+    PhysicsLab · built with GitHub Pages · 2026
+</div>
+
+</body>
+</html>
