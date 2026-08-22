@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PhysicsLab · Electric Field (PyScript)</title>
 
-    <!-- PyScript -->
     <link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
     <script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
 
@@ -262,7 +261,7 @@
         dy = y - pos[1]
         r2 = dx*dx + dy*dy
         if r2 < 0.01:
-            return 0, 0  # Avoid singularities
+            return 0, 0
         r = np.sqrt(r2)
         E = k * q / r2
         return E * dx / r, E * dy / r
@@ -277,20 +276,16 @@
             Ey += ey
         return Ex, Ey
 
-    def potential(q, pos, x, y):
-        """Compute electric potential at (x, y) due to charge q."""
-        dx = x - pos[0]
-        dy = y - pos[1]
-        r = np.sqrt(dx*dx + dy*dy)
-        if r < 0.01:
-            return np.inf
-        return k * q / r
-
     def total_potential(charges, x, y):
         """Compute total electric potential at (x, y) from all charges."""
         V = np.zeros_like(x)
         for q, pos in charges:
-            V += potential(q, pos, x, y)
+            dx = x - pos[0]
+            dy = y - pos[1]
+            r = np.sqrt(dx*dx + dy*dy)
+            # Avoid division by zero: set minimum distance
+            r = np.maximum(r, 0.1)
+            V += k * q / r
         return V
 
     # ----------------------------------------------------------------
@@ -308,7 +303,6 @@
             E_mag = np.sqrt(Ex*Ex + Ey*Ey)
             if E_mag < 1e-8:
                 break
-            # Normalise and step
             dx = step * Ex / E_mag
             dy = step * Ey / E_mag
             x += dx
@@ -316,7 +310,6 @@
             points_x.append(x)
             points_y.append(y)
 
-            # Check if we're too close to a charge or out of bounds
             for q, pos in charges:
                 if np.sqrt((x - pos[0])**2 + (y - pos[1])**2) < 0.2:
                     return np.array(points_x), np.array(points_y)
@@ -326,7 +319,7 @@
 
         return np.array(points_x), np.array(points_y)
 
-    def get_starting_points(charges, n_lines=32):
+    def get_starting_points(charges, n_lines=24):
         """Generate starting points around positive charges."""
         start_points = []
         for q, pos in charges:
@@ -344,52 +337,50 @@
 
     def plot_electric_field(q1, q2, separation):
         """Main plotting function."""
-        # Charge positions
         pos1 = (-separation/2, 0)
         pos2 = (separation/2, 0)
         charges = [(q1, pos1), (q2, pos2)]
 
         fig, ax = plt.subplots(figsize=(9, 8))
 
-        # --- Grid for field and potential ---
+        # Grid for potential
         grid_size = 200
         x = np.linspace(-8, 8, grid_size)
         y = np.linspace(-8, 8, grid_size)
         X, Y = np.meshgrid(x, y)
 
-        # Compute potential
+        # Compute potential - safe version
         V = total_potential(charges, X, Y)
-    
-        # Clip potential to avoid infinities near charges
-        V_clipped = np.clip(V, -15, 15)
 
-        # --- Equipotential contours ---
+        # Replace inf with finite values
+        V = np.nan_to_num(V, nan=0.0, posinf=15.0, neginf=-15.0)
+
+        # Equipotential contours
         levels = np.linspace(-12, 12, 20)
-    
-        contour = ax.contour(X, Y, V_clipped, levels=levels,
-                             colors='#dc3545', alpha=0.5, linewidths=0.8)
+        ax.contour(X, Y, V, levels=levels,
+                   colors='#dc3545', alpha=0.5, linewidths=0.8)
 
-        # --- Field lines ---
+        # Field lines
         start_points = get_starting_points(charges, n_lines=24)
         for sx, sy in start_points:
             line_x, line_y = trace_field_line(charges, sx, sy, step=0.05, max_steps=400)
             ax.plot(line_x, line_y, color='#2d7aff', linewidth=1.2, alpha=0.7)
 
-        # --- Plot charges ---
+        # Plot charges
+        max_q = max(abs(q1), abs(q2), 1.0)
         for q, pos in charges:
             if q > 0:
                 color = '#ffc107'
-                size = 300 * (q / max(abs(q1), abs(q2), 1))
+                size = 300 * (q / max_q)
             else:
                 color = '#28a745'
-                size = 300 * (abs(q) / max(abs(q1), abs(q2), 1))
-            ax.scatter(pos[0], pos[1], s=max(size, 100), color=color,
+                size = 300 * (abs(q) / max_q)
+            ax.scatter(pos[0], pos[1], s=max(size, 80), color=color,
                        edgecolor='black', linewidth=1.5, zorder=10)
             label = '+' if q > 0 else '−'
             ax.text(pos[0], pos[1], label, color='white',
                     fontsize=14, fontweight='bold', ha='center', va='center', zorder=11)
 
-        # --- Labels and formatting ---
         ax.set_xlim(-8, 8)
         ax.set_ylim(-8, 8)
         ax.set_aspect('equal')
@@ -411,10 +402,10 @@
             config = 'Single charge'
             title = f'Single Charge: Q₁ = {q1:.1f}'
         elif q1 > 0 and q2 > 0:
-            config = 'Same sign (repulsive)'
+            config = 'Same sign'
             title = f'Repulsive: Q₁ = +{q1:.1f}, Q₂ = +{q2:.1f}'
         elif q1 < 0 and q2 < 0:
-            config = 'Same sign (repulsive)'
+            config = 'Same sign'
             title = f'Repulsive: Q₁ = {q1:.1f}, Q₂ = {q2:.1f}'
         else:
             config = 'Custom'
@@ -428,6 +419,7 @@
         doc.getElementById('q1Display').textContent = f'{q1:+.1f}'
         doc.getElementById('q2Display').textContent = f'{q2:+.1f}'
         doc.getElementById('linesDisplay').textContent = str(len(start_points))
+
         return fig
 
     # ----------------------------------------------------------------
@@ -450,7 +442,9 @@
             fig = plot_electric_field(q1, q2, sep)
             display(fig, target='plot-container')
         except Exception as e:
-            container.innerHTML = f'<div style="color:red;">Error: {e}</div>'
+            container.innerHTML = f'<div style="color:red;">Error: {str(e)}</div>'
+            import traceback
+            traceback.print_exc()
 
     def reset_dipole(event):
         q1_slider.value = '5'
@@ -461,7 +455,6 @@
         document.getElementById('sepValue').textContent = '3.0'
         update_plot()
 
-    # Sync slider displays
     def sync_q1(event):
         val = float(event.target.value)
         document.getElementById('q1Value').textContent = f'{val:+.1f}'
@@ -483,7 +476,6 @@
     reset_btn = document.getElementById('resetBtn')
     reset_btn.addEventListener('click', create_proxy(reset_dipole))
 
-    # Initial plot
     update_plot()
 </py-script>
 
