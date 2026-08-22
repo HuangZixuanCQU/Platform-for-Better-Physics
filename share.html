@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Physics Learning Repository</title>
+    <title>PhysicsLab · Resources</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -13,34 +13,77 @@
             padding: 20px;
             background: #f5f7fa;
         }
-        .header {
+
+        /* ===== NAVIGATION BAR ===== */
+        .top-bar {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 3px solid #2d7aff;
-            padding-bottom: 10px;
             flex-wrap: wrap;
-            gap: 12px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0 16px;
+            border-bottom: 2px solid #e6edf4;
+            margin-bottom: 32px;
         }
-        h1 {
-            color: #1a2332;
-            margin: 0;
-            font-size: 28px;
+        .top-bar .logo {
+            font-size: 22px;
             font-weight: 600;
+            color: #0a1a2b;
+            letter-spacing: -0.3px;
         }
-        .header-sub {
-            color: #4a5a6e;
+        .top-bar .logo span {
+            color: #2d7aff;
+        }
+        .top-bar .nav-links {
+            display: flex;
+            gap: 28px;
             font-size: 15px;
         }
-        .badge {
-            font-size: 12px;
-            background: #e9ecf0;
-            padding: 2px 10px;
-            border-radius: 12px;
-            color: #4a5a6e;
+        .top-bar .nav-links a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: 0.15s;
+        }
+        .top-bar .nav-links a:hover {
+            color: #1a5fd0;
+            border-bottom-color: #2d7aff;
+        }
+        .top-bar .nav-links a.active {
+            color: #1a5fd0;
+            border-bottom-color: #2d7aff;
         }
 
-        /* Toolbar: search + filter */
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            margin-bottom: 24px;
+        }
+        .page-header h1 {
+            font-size: 30px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .page-header h1 span {
+            color: #2d7aff;
+        }
+        .page-header p {
+            color: #4a5a6e;
+            font-size: 16px;
+        }
+
+        /* ===== STATS BAR ===== */
+        .stats-bar {
+            display: flex;
+            gap: 24px;
+            margin: 8px 0 4px;
+            color: #4a5a6e;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+        .stats-bar span { background: white; padding: 4px 16px; border-radius: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+
+        /* ===== TOOLBAR (Search + Filter) ===== */
         .toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -60,12 +103,8 @@
             outline: none;
             font-family: inherit;
         }
-        .search-box:focus {
-            border-color: #2d7aff;
-        }
-        .search-box::placeholder {
-            color: #9aa8b8;
-        }
+        .search-box:focus { border-color: #2d7aff; }
+        .search-box::placeholder { color: #9aa8b8; }
         .filter-group {
             display: flex;
             flex-wrap: wrap;
@@ -97,16 +136,7 @@
             margin-left: 4px;
         }
 
-        .stats-bar {
-            display: flex;
-            gap: 24px;
-            margin: 8px 0 4px;
-            color: #4a5a6e;
-            font-size: 14px;
-            flex-wrap: wrap;
-        }
-        .stats-bar span { background: white; padding: 4px 16px; border-radius: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-
+        /* ===== CATEGORY & CARDS ===== */
         .category {
             margin-top: 28px;
             background: white;
@@ -115,9 +145,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             transition: opacity 0.2s;
         }
-        .category.hidden {
-            display: none;
-        }
+        .category.hidden { display: none; }
         .category h2 {
             color: #1a2332;
             font-size: 19px;
@@ -156,9 +184,7 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(45,122,255,0.12);
         }
-        .card.hidden {
-            display: none;
-        }
+        .card.hidden { display: none; }
         .ext {
             font-size: 28px;
             font-weight: 300;
@@ -210,8 +236,27 @@
         }
         .error { color: #d1453b; }
         .no-results { display: none; }
-        @media (max-width: 600px) {
-            .header { flex-direction: column; align-items: flex-start; }
+
+        /* ===== FOOTER ===== */
+        .footer-note {
+            margin-top: 48px;
+            padding-top: 16px;
+            border-top: 1px solid #e6edf4;
+            font-size: 14px;
+            color: #6b7f94;
+            text-align: center;
+        }
+
+        @media (max-width: 640px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .top-bar .nav-links {
+                gap: 18px;
+                flex-wrap: wrap;
+            }
             .grid { grid-template-columns: 1fr 1fr; }
             .category { padding: 16px; }
             .toolbar { flex-direction: column; align-items: stretch; }
@@ -221,33 +266,45 @@
 </head>
 <body>
 
-<div class="header">
-    <div>
-        <h1>Physics Learning Repository</h1>
-        <div class="header-sub">Open educational resources for physics students</div>
-    </div>
-    <div class="badge">GitHub Pages</div>
-</div>
-
-<!-- Toolbar -->
-<div class="toolbar">
-    <input class="search-box" id="searchInput" type="text" placeholder="Search by filename..." />
-    <div class="filter-group" id="filterGroup">
-        <!-- Filter buttons will be generated by JavaScript -->
+<!-- ===== NAVIGATION BAR ===== -->
+<div class="top-bar">
+    <div class="logo">Physics<span>Lab</span></div>
+    <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="share.html" class="active">Resources</a>
+        <a href="simulations.html">Simulations</a>
     </div>
 </div>
 
+<!-- ===== PAGE HEADER ===== -->
+<div class="page-header">
+    <h1>Learning <span>Resources</span></h1>
+    <p>Lecture notes, problem sets, and reference materials — organised by topic.</p>
+</div>
+
+<!-- ===== STATS BAR ===== -->
 <div class="stats-bar" id="statsBar">
     <span><span id="totalCats">0</span> categories</span>
     <span><span id="totalFiles">0</span> files</span>
     <span><span id="totalSize">0</span></span>
 </div>
 
+<!-- ===== TOOLBAR ===== -->
+<div class="toolbar">
+    <input class="search-box" id="searchInput" type="text" placeholder="Search by filename..." />
+    <div class="filter-group" id="filterGroup"></div>
+</div>
+
+<!-- ===== FILE LIST ===== -->
 <div id="container">
     <div class="loading">Loading resources...</div>
 </div>
-
 <div class="no-results" id="noResults">No files match your search or filter.</div>
+
+<!-- ===== FOOTER ===== -->
+<div class="footer-note">
+    PhysicsLab · built with GitHub Pages · 2026
+</div>
 
 <script>
     // ====== CONFIGURATION ======
@@ -260,8 +317,7 @@
     const filterGroup = document.getElementById('filterGroup');
     const noResults = document.getElementById('noResults');
 
-    // Global state
-    let allCategoryData = {};      // categoryName -> [file objects]
+    let allCategoryData = {};
     let allFileExtensions = new Set();
     let currentFilter = 'All';
     let currentSearch = '';
@@ -309,7 +365,6 @@
         return await res.json();
     }
 
-    // Build filter buttons from all file extensions
     function buildFilterButtons() {
         const sortedExts = Array.from(allFileExtensions).sort();
         let html = `<button class="filter-btn active" data-filter="All">All <span class="count">(${Object.values(allCategoryData).flat().length})</span></button>`;
@@ -322,7 +377,6 @@
         }
         filterGroup.innerHTML = html;
 
-        // Add click handlers
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -337,7 +391,6 @@
         const searchLower = currentSearch.toLowerCase().trim();
         let hasVisibleCards = false;
 
-        // Loop through all categories
         for (const [catName, files] of Object.entries(allCategoryData)) {
             const categoryEl = document.querySelector(`.category[data-category="${CSS.escape(catName)}"]`);
             if (!categoryEl) continue;
@@ -349,10 +402,7 @@
                 const fileName = card.dataset.filename.toLowerCase();
                 const fileExt = card.dataset.ext;
 
-                // Search filter
                 const matchesSearch = !searchLower || fileName.includes(searchLower);
-
-                // Extension filter
                 const matchesExt = currentFilter === 'All' || fileExt === currentFilter;
 
                 const visible = matchesSearch && matchesExt;
@@ -363,10 +413,8 @@
                 }
             });
 
-            // Show/hide entire category
             categoryEl.classList.toggle('hidden', visibleInCategory === 0);
 
-            // Update category file count
             const countSpan = categoryEl.querySelector('.count');
             if (countSpan) {
                 const total = files.length;
@@ -376,7 +424,6 @@
             }
         }
 
-        // Show/hide "no results" message
         noResults.style.display = hasVisibleCards ? 'none' : 'block';
     }
 
@@ -411,10 +458,8 @@
                 return;
             }
 
-            // Store globally for filtering
             allCategoryData = categoryMap;
 
-            // Collect all extensions
             allFileExtensions = new Set();
             for (const cat of keys) {
                 for (const f of categoryMap[cat]) {
@@ -423,7 +468,6 @@
                 }
             }
 
-            // Update stats
             let totalFileCount = 0;
             let totalByteSize = 0;
             for (const cat of keys) {
@@ -465,16 +509,13 @@
 
             container.innerHTML = html;
 
-            // Build filter buttons
             buildFilterButtons();
 
-            // Set up search listener
             searchInput.addEventListener('input', function() {
                 currentSearch = this.value;
                 applyFilters();
             });
 
-            // Initial filter state
             currentFilter = 'All';
             currentSearch = '';
             applyFilters();
@@ -485,6 +526,10 @@
         }
     }
 
+    loadAll();
+</script>
+</body>
+</html>
     loadAll();
 </script>
 </body>
