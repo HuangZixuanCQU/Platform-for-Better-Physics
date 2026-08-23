@@ -299,7 +299,7 @@
                 </div>
                 <div class="ctrl-group">
                     <label data-key="label_height">Launch Height <span class="value-badge" id="heightDisplay">0.0</span></label>
-                    <input type="range" id="heightSlider" min="-6" max="24" value="0" step="0.5">
+                    <input type="range" id="heightSlider" min="0" max="40" value="0" step="0.5">
                 </div>
 
                 <div class="ctrl-group">
@@ -315,10 +315,6 @@
                         <input type="checkbox" id="showRangeLine" checked>
                         <label for="showRangeLine" data-key="chk_range">Range indicator</label>
                     </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="showVelocity" checked>
-                        <label for="showVelocity" data-key="chk_velocity">Velocity vector</label>
-                    </div>
                 </div>
 
                 <button class="btn-reset" id="resetBtn" data-key="btn_reset">⟳ Reset to default</button>
@@ -327,7 +323,6 @@
                     <span class="legend-item"><span class="legend-dot" style="background:#2d7aff;"></span> <span data-key="leg_trajectory">Trajectory</span></span>
                     <span class="legend-item"><span class="legend-dot" style="background:#dc3545;"></span> <span data-key="leg_envelope">Envelope</span></span>
                     <span class="legend-item"><span class="legend-dot" style="background:#28a745;"></span> <span data-key="leg_range">Range</span></span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#ff6b35;"></span> <span data-key="leg_velocity">Velocity</span></span>
                 </div>
                 <div class="hint-text" data-key="hint">Drag sliders · real-time update</div>
             </div>
@@ -354,12 +349,10 @@
                 chk_trajectory: '轨迹',
                 chk_envelope: '安全抛物线',
                 chk_range: '射程指示',
-                chk_velocity: '速度矢量',
                 btn_reset: '⟳ 重置为默认',
                 leg_trajectory: '轨迹',
                 leg_envelope: '包络线',
                 leg_range: '射程',
-                leg_velocity: '速度',
                 hint: '拖动滑块 · 实时更新',
                 footer: 'PhysicsLab · p5.js · 2026'
             },
@@ -376,12 +369,10 @@
                 chk_trajectory: 'Trajectory',
                 chk_envelope: 'Safety parabola',
                 chk_range: 'Range indicator',
-                chk_velocity: 'Velocity vector',
                 btn_reset: '⟳ Reset to default',
                 leg_trajectory: 'Trajectory',
                 leg_envelope: 'Envelope',
                 leg_range: 'Range',
-                leg_velocity: 'Velocity',
                 hint: 'Drag sliders · real-time update',
                 footer: 'PhysicsLab · p5.js · 2026'
             }
@@ -429,13 +420,11 @@
         let showTrajectory = true;
         let showEnvelope = true;
         let showRange = true;
-        let showVelocity = true;
 
         // ----- Simulation state -----
         let trailPoints = [];
         let envelopePoints = [];
         let ballPos = null;
-        let ballVel = null;
 
         // ----- Display constants -----
         let scaleFactor = 3.8;
@@ -457,7 +446,6 @@
         const showTrajectoryCheck = document.getElementById('showTrajectory');
         const showEnvelopeCheck = document.getElementById('showEnvelope');
         const showRangeCheck = document.getElementById('showRangeLine');
-        const showVelocityCheck = document.getElementById('showVelocity');
 
         // ============================================================
         //  p5.js
@@ -499,9 +487,6 @@
             });
             showRangeCheck.addEventListener('change', function() {
                 showRange = this.checked;
-            });
-            showVelocityCheck.addEventListener('change', function() {
-                showVelocity = this.checked;
             });
 
             // --- Reset button ---
@@ -555,9 +540,7 @@
             text('Ground', 6, groundY + 6);
             pop();
 
-            // ===== 获取当前发射点位置（物理坐标） =====
-            // 发射点物理坐标：x=0, y=heightM
-            // 画布坐标：px = originX + 0 * scaleFactor, py = groundY - heightM * scaleFactor
+            // ===== 发射点位置 =====
             const launchX = originX;
             const launchY = groundY - heightM * scaleFactor;
 
@@ -668,41 +651,6 @@
                 }
             }
 
-            // ----- 速度矢量（跟随小球位置） -----
-            if (showVelocity && ballPos && ballVel) {
-                const vScale = 2.2;
-                // 速度矢量起点：小球当前位置
-                const startX = ballPos.x;
-                const startY = ballPos.y;
-                const endX = constrain(startX + ballVel.x * vScale, 0, width);
-                const endY = constrain(startY + ballVel.y * vScale, 0, height);
-                const speedMag = sqrt(ballVel.x * ballVel.x + ballVel.y * ballVel.y) / scaleFactor;
-
-                push();
-                stroke(255, 107, 53);
-                strokeWeight(2.5);
-                line(startX, startY, endX, endY);
-                // Arrowhead
-                const angleArrow = atan2(ballVel.y, ballVel.x);
-                const headLen = 10;
-                push();
-                translate(endX, endY);
-                rotate(angleArrow);
-                fill(255, 107, 53);
-                noStroke();
-                triangle(0, 0, -headLen, -headLen * 0.4, -headLen, headLen * 0.4);
-                pop();
-                // Speed label
-                fill(255, 107, 53);
-                noStroke();
-                textSize(12);
-                textAlign(LEFT, BOTTOM);
-                const labelX = constrain(endX + 8, 10, width - 10);
-                const labelY = constrain(endY - 4, 20, height - 10);
-                text('v = ' + speedMag.toFixed(1) + ' m/s', labelX, labelY);
-                pop();
-            }
-
             // ----- Ball -----
             if (ballPos) {
                 const bx = constrain(ballPos.x, 0, width);
@@ -756,7 +704,6 @@
             const vy = -v0 * sin(theta);
 
             trailPoints = [];
-            // 物理坐标：x从0开始，y从heightM开始
             let xPhys = 0;
             let yPhys = heightM;
             const dt = 0.02;
@@ -764,7 +711,6 @@
             let maxSteps = 3000;
 
             for (let i = 0; i < maxSteps; i++) {
-                // 画布坐标
                 const px = originX + xPhys * scaleFactor;
                 const py = groundY - yPhys * scaleFactor;
                 trailPoints.push(createVector(px, py));
@@ -773,9 +719,7 @@
                 xPhys = vx * t;
                 yPhys = heightM + vy * t - 0.5 * gravity * t * t;
 
-                // 落地检测
                 if (yPhys < 0) {
-                    // 线性插值精确计算落点
                     const lastP = trailPoints[trailPoints.length - 1];
                     const prevP = trailPoints[trailPoints.length - 2] || lastP;
                     if (lastP.y !== prevP.y) {
@@ -785,28 +729,16 @@
                     } else {
                         trailPoints.push(createVector(lastP.x, groundY));
                     }
-                    // 更新最终位置
-                    const finalP = trailPoints[trailPoints.length - 1];
-                    ballPos = finalP.copy();
-                    // 计算落地时的速度（画布坐标）
-                    const vxPix = vx * scaleFactor;
-                    const vyPix = (-vy + gravity * t) * scaleFactor;
-                    ballVel = createVector(vxPix, vyPix);
+                    ballPos = trailPoints[trailPoints.length - 1].copy();
                     return;
                 }
 
-                // 超出边界
                 if (px > width + 50 || px < -50) break;
                 if (py < -200 || py > groundY + 200) break;
             }
 
-            // 如果没有落地，使用最后一个点
             if (trailPoints.length > 0) {
-                const last = trailPoints[trailPoints.length - 1];
-                ballPos = last.copy();
-                const vxPix = vx * scaleFactor;
-                const vyPix = (-vy + gravity * t) * scaleFactor;
-                ballVel = createVector(vxPix, vyPix);
+                ballPos = trailPoints[trailPoints.length - 1].copy();
             }
         }
 
@@ -827,7 +759,6 @@
                 if (px > width + 20) break;
                 envelopePoints.push(createVector(px, py));
             }
-            // 负 x 方向
             const negPoints = [];
             for (let i = 1; i <= 30; i++) {
                 const xPhys = -(i / 30) * maxRange * 0.3;
