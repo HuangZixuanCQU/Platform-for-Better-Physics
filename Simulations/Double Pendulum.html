@@ -57,6 +57,25 @@
         }
         .top-bar .nav-links a:hover { color: #1a5fd0; border-bottom-color: #2d7aff; }
         .top-bar .nav-links a.active { color: #1a5fd0; border-bottom-color: #2d7aff; }
+        .top-bar .nav-links a.experiment {
+            color: #f59e0b;
+        }
+        .top-bar .nav-links a.experiment:hover {
+            color: #d97706;
+        }
+        .lang-btn {
+            background: #2d7aff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            font-family: inherit;
+        }
+        .lang-btn:hover { background: #1a5fd0; }
 
         .sim-title { margin-bottom: 16px; }
         .sim-title h1 { font-size: 26px; font-weight: 600; }
@@ -159,56 +178,126 @@
         <div class="top-bar">
             <div class="logo">Physics<span>Lab</span></div>
             <div class="nav-links">
-                <a href="../index.html">Home</a>
-                <a href="../share.html">Resources</a>
-                <a href="../simulations.html" class="active">Simulations</a>
+                <a href="../index.html" data-key="nav_home">Home</a>
+                <a href="../share.html" data-key="nav_resources">Resources</a>
+                <a href="../simulations.html" class="active" data-key="nav_simulations">Simulations</a>
+                <a href="../experiment%20choosing.html" class="experiment" data-key="nav_experiment">AI for Experiment</a>
+                <button id="langToggle" class="lang-btn">中文</button>
             </div>
         </div>
 
         <div class="sim-title">
-            <h1>Double <span>Pendulum</span></h1>
-            <p>p5.js · Chaotic motion with permanent trail · Adjustable speed</p>
+            <h1 data-key="title">Double <span>Pendulum</span></h1>
+            <p data-key="subtitle">p5.js · Chaotic motion with permanent trail · Adjustable speed</p>
         </div>
 
         <div id="canvas-container"></div>
 
         <div class="controls">
             <div class="control-group">
-                <label>L₁</label>
+                <label data-key="label_L1">L₁</label>
                 <input type="range" id="L1Slider" min="80" max="200" value="150" step="1">
                 <span class="value" id="L1Value">150</span>
             </div>
             <div class="control-group">
-                <label>L₂</label>
+                <label data-key="label_L2">L₂</label>
                 <input type="range" id="L2Slider" min="80" max="200" value="120" step="1">
                 <span class="value" id="L2Value">120</span>
             </div>
             <div class="control-group">
-                <label>m₁</label>
+                <label data-key="label_m1">m₁</label>
                 <input type="range" id="m1Slider" min="5" max="40" value="20" step="1">
                 <span class="value" id="m1Value">20</span>
             </div>
             <div class="control-group">
-                <label>m₂</label>
+                <label data-key="label_m2">m₂</label>
                 <input type="range" id="m2Slider" min="5" max="40" value="15" step="1">
                 <span class="value" id="m2Value">15</span>
             </div>
             <div class="control-group">
-                <label></label>
+                <label data-key="label_speed">Speed</label>
                 <input type="range" id="speedSlider" min="0.2" max="5.0" value="3.0" step="0.1">
                 <span class="value" id="speedValue">1.0x</span>
             </div>
             <div class="btn-group">
-                <button class="btn btn-primary" id="resetBtn">Reset</button>
-                <button class="btn btn-secondary" id="pauseBtn">Pause</button>
-                <button class="btn btn-danger" id="clearTrailBtn">Clear Trail</button>
+                <button class="btn btn-primary" id="resetBtn" data-key="btn_reset">Reset</button>
+                <button class="btn btn-secondary" id="pauseBtn" data-key="btn_pause">Pause</button>
+                <button class="btn btn-danger" id="clearTrailBtn" data-key="btn_clear">Clear Trail</button>
             </div>
         </div>
 
-        <div class="footer-note">PhysicsLab · p5.js · 2026</div>
+        <div class="footer-note" data-key="footer">PhysicsLab · p5.js · 2026</div>
     </div>
 
     <script>
+        // ============================================================
+        //  LANGUAGE SUPPORT
+        // ============================================================
+        const translations = {
+            zh: {
+                nav_home: '首页',
+                nav_resources: '资料库',
+                nav_simulations: '仿真',
+                nav_experiment: 'AI 实验分析',
+                title: '双摆',
+                subtitle: 'p5.js · 混沌运动，永久轨迹 · 可调速度',
+                label_L1: '摆长₁',
+                label_L2: '摆长₂',
+                label_m1: '质量₁',
+                label_m2: '质量₂',
+                label_speed: '速度',
+                btn_reset: '重置',
+                btn_pause: '暂停',
+                btn_clear: '清除轨迹',
+                footer: 'PhysicsLab · p5.js · 2026'
+            },
+            en: {
+                nav_home: 'Home',
+                nav_resources: 'Resources',
+                nav_simulations: 'Simulations',
+                nav_experiment: 'AI for Experiment',
+                title: 'Double Pendulum',
+                subtitle: 'p5.js · Chaotic motion with permanent trail · Adjustable speed',
+                label_L1: 'L₁',
+                label_L2: 'L₂',
+                label_m1: 'm₁',
+                label_m2: 'm₂',
+                label_speed: 'Speed',
+                btn_reset: 'Reset',
+                btn_pause: 'Pause',
+                btn_clear: 'Clear Trail',
+                footer: 'PhysicsLab · p5.js · 2026'
+            }
+        };
+
+        let currentLang = 'en';
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.dataset.key;
+                if (t[key] !== undefined) {
+                    el.textContent = t[key];
+                }
+            });
+            const toggleBtn = document.getElementById('langToggle');
+            if (toggleBtn) toggleBtn.textContent = lang === 'zh' ? 'English' : '中文';
+            localStorage.setItem('preferredLang', lang);
+            document.documentElement.lang = lang;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('langToggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    switchLanguage(currentLang === 'zh' ? 'en' : 'zh');
+                });
+            }
+            const savedLang = localStorage.getItem('preferredLang') || 'en';
+            switchLanguage(savedLang);
+        });
+
         // ============================================================
         //  DOUBLE PENDULUM PHYSICS (p5.js)
         // ============================================================
@@ -226,7 +315,7 @@
             omega2 = 0;
 
         let x1, y1, x2, y2;
-    
+
         let trail1 = [],
             trail2 = [];
         let paused = false;
@@ -279,7 +368,7 @@
             const canvas = createCanvas(800, 800);
             canvas.parent('canvas-container');
             originX = width / 2;
-            originY = 280; 
+            originY = 280;
             resetPendulum();
 
             L1Slider.addEventListener('input', function() {
@@ -322,11 +411,9 @@
             theta2 = -1.2;
             omega1 = 0;
             omega2 = 0;
-            // 重置时清空轨迹，重新开始
             trail1 = [];
             trail2 = [];
             time = 0;
-            // 初始化位置
             x1 = originX + L1 * sin(theta1);
             y1 = originY + L1 * cos(theta1);
             x2 = x1 + L2 * sin(theta2);
@@ -338,7 +425,6 @@
         function draw() {
             background('#fafcff');
 
-            // ===== 物理更新 =====
             if (!paused) {
                 const dt = 0.04 * timeScale;
                 time += dt;
@@ -353,14 +439,10 @@
                 x2 = x1 + L2 * sin(theta2);
                 y2 = y1 + L2 * cos(theta2);
 
-                // 永久轨迹：不限制长度，永不删除
                 trail1.push({ x: x1, y: y1 });
                 trail2.push({ x: x2, y: y2 });
-                // 不再有 shift() 删除
             }
 
-            // ===== 绘制轨迹 =====
-            // 轨迹1 (m1) - 蓝色，透明度渐变
             push();
             noFill();
             if (trail1.length > 1) {
@@ -373,7 +455,6 @@
             }
             pop();
 
-            // 轨迹2 (m2) - 橙色，透明度渐变
             push();
             noFill();
             if (trail2.length > 1) {
@@ -386,7 +467,6 @@
             }
             pop();
 
-            // ===== 绘制杆 =====
             push();
             stroke(40, 50, 70);
             strokeWeight(2);
@@ -394,30 +474,24 @@
             line(x1, y1, x2, y2);
             pop();
 
-            // ===== 绘制支点 =====
             push();
             fill(40, 50, 70);
             noStroke();
             ellipse(originX, originY, 12, 12);
-            // 支点十字标记
             stroke(40, 50, 70);
             strokeWeight(1);
             line(originX - 16, originY, originX + 16, originY);
             line(originX, originY - 16, originX, originY + 16);
             pop();
 
-            // ===== 绘制质量块 =====
             push();
             noStroke();
-            // m1 - 蓝色
             fill(45, 120, 255);
             ellipse(x1, y1, m1 * 1.2, m1 * 1.2);
-            // m2 - 橙色
             fill(255, 107, 53);
             ellipse(x2, y2, m2 * 1.2, m2 * 1.2);
             pop();
 
-            // ===== 标签 =====
             push();
             fill(40, 50, 70);
             noStroke();
@@ -430,7 +504,6 @@
                 ' pts', width - 16, 16);
             pop();
 
-            // ===== 显示轨迹长度提示 =====
             push();
             fill(100, 110, 130);
             noStroke();
