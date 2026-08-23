@@ -90,8 +90,17 @@
             margin-top: 10px;
             align-items: center;
         }
-        .control-group { display: flex; align-items: center; gap: 10px; }
-        .control-group label { font-size: 14px; font-weight: 500; color: #2c3e50; min-width: 20px; }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .control-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #2c3e50;
+            min-width: 20px;
+        }
         .control-group input[type="range"] {
             width: 140px;
             cursor: pointer;
@@ -104,7 +113,11 @@
             min-width: 36px;
             text-align: center;
         }
-        .btn-group { display: flex; gap: 10px; margin-left: auto; }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
         .btn {
             padding: 8px 20px;
             border: none;
@@ -119,6 +132,8 @@
         .btn-primary:hover { background: #1a5fd0; }
         .btn-secondary { background: #e9ecf0; color: #2c3e50; }
         .btn-secondary:hover { background: #d5dae0; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
 
         .footer-note {
             margin-top: 32px;
@@ -152,7 +167,7 @@
 
         <div class="sim-title">
             <h1>Double <span>Pendulum</span></h1>
-            <p>p5.js · Real-time chaotic motion · Adjustable speed</p>
+            <p>p5.js · Chaotic motion with permanent trail · Adjustable speed</p>
         </div>
 
         <div id="canvas-container"></div>
@@ -178,7 +193,6 @@
                 <input type="range" id="m2Slider" min="5" max="40" value="15" step="1">
                 <span class="value" id="m2Value">15</span>
             </div>
-            <!-- 新增：时间流速控制 -->
             <div class="control-group">
                 <label>⏱</label>
                 <input type="range" id="speedSlider" min="0.2" max="3.0" value="1.0" step="0.1">
@@ -187,6 +201,7 @@
             <div class="btn-group">
                 <button class="btn btn-primary" id="resetBtn">Reset</button>
                 <button class="btn btn-secondary" id="pauseBtn">Pause</button>
+                <button class="btn btn-danger" id="clearTrailBtn">Clear Trail</button>
             </div>
         </div>
 
@@ -195,7 +210,7 @@
 
     <script>
         // ============================================================
-        //  DOUBLE PENDULUM PHYSICS (p5.js) - 时间流速可调
+        //  DOUBLE PENDULUM PHYSICS (p5.js) - 永久轨迹
         // ============================================================
 
         let L1 = 150,
@@ -203,16 +218,15 @@
         let m1 = 20,
             m2 = 15;
         let g = 0.4;
-        let timeScale = 1.0; // 新增：时间流速倍率
+        let timeScale = 1.0;
 
         let theta1 = 1.2,
             theta2 = -1.2;
         let omega1 = 0,
             omega2 = 0;
-        let alpha1 = 0,
-            alpha2 = 0;
 
         let x1, y1, x2, y2;
+        // 永久轨迹：不限制长度，永不删除
         let trail1 = [],
             trail2 = [];
         let paused = false;
@@ -223,14 +237,15 @@
         const L2Slider = document.getElementById('L2Slider');
         const m1Slider = document.getElementById('m1Slider');
         const m2Slider = document.getElementById('m2Slider');
-        const speedSlider = document.getElementById('speedSlider'); // 新增
+        const speedSlider = document.getElementById('speedSlider');
         const L1Value = document.getElementById('L1Value');
         const L2Value = document.getElementById('L2Value');
         const m1Value = document.getElementById('m1Value');
         const m2Value = document.getElementById('m2Value');
-        const speedValue = document.getElementById('speedValue'); // 新增
+        const speedValue = document.getElementById('speedValue');
         const resetBtn = document.getElementById('resetBtn');
         const pauseBtn = document.getElementById('pauseBtn');
+        const clearTrailBtn = document.getElementById('clearTrailBtn');
 
         let originX, originY;
 
@@ -261,10 +276,10 @@
 
         function setup() {
             pixelDensity(1);
-            const canvas = createCanvas(800, 600);
+            const canvas = createCanvas(800, 700); // 从 600 增加到 700
             canvas.parent('canvas-container');
             originX = width / 2;
-            originY = 80;
+            originY = 140; // 固定点从 80 下移到 140
             resetPendulum();
 
             L1Slider.addEventListener('input', function() {
@@ -287,7 +302,6 @@
                 m2Value.textContent = m2;
                 resetPendulum();
             });
-            // 新增：时间流速控制
             speedSlider.addEventListener('input', function() {
                 timeScale = parseFloat(this.value);
                 speedValue.textContent = timeScale.toFixed(1) + 'x';
@@ -297,6 +311,10 @@
                 paused = !paused;
                 this.textContent = paused ? 'Resume' : 'Pause';
             });
+            clearTrailBtn.addEventListener('click', function() {
+                trail1 = [];
+                trail2 = [];
+            });
         }
 
         function resetPendulum() {
@@ -304,17 +322,25 @@
             theta2 = -1.2;
             omega1 = 0;
             omega2 = 0;
+            // 重置时清空轨迹，重新开始
             trail1 = [];
             trail2 = [];
             time = 0;
+            // 初始化位置
+            x1 = originX + L1 * sin(theta1);
+            y1 = originY + L1 * cos(theta1);
+            x2 = x1 + L2 * sin(theta2);
+            y2 = y1 + L2 * cos(theta2);
+            trail1.push({ x: x1, y: y1 });
+            trail2.push({ x: x2, y: y2 });
         }
 
         function draw() {
             background('#fafcff');
 
-            // 物理更新 - 应用时间流速
+            // ===== 物理更新 =====
             if (!paused) {
-                const dt = 0.04 * timeScale; // 乘以 timeScale
+                const dt = 0.04 * timeScale;
                 time += dt;
                 const [a1, a2] = computeAccelerations(theta1, theta2, omega1, omega2);
                 omega1 += a1 * dt;
@@ -322,22 +348,45 @@
                 theta1 += omega1 * dt;
                 theta2 += omega2 * dt;
 
-                // 计算位置
                 x1 = originX + L1 * sin(theta1);
                 y1 = originY + L1 * cos(theta1);
                 x2 = x1 + L2 * sin(theta2);
                 y2 = y1 + L2 * cos(theta2);
 
+                // 永久轨迹：不限制长度，永不删除
                 trail1.push({ x: x1, y: y1 });
                 trail2.push({ x: x2, y: y2 });
-                if (trail1.length > 400) trail1.shift();
-                if (trail2.length > 400) trail2.shift();
+                // 不再有 shift() 删除
             }
 
-            // 绘制轨迹
-            drawTrail();
+            // ===== 绘制轨迹 =====
+            // 轨迹1 (m1) - 蓝色，透明度渐变
+            push();
+            noFill();
+            if (trail1.length > 1) {
+                for (let i = 1; i < trail1.length; i++) {
+                    const alpha = map(i, 0, trail1.length, 20, 120);
+                    stroke(45, 120, 255, alpha);
+                    strokeWeight(1.2);
+                    line(trail1[i - 1].x, trail1[i - 1].y, trail1[i].x, trail1[i].y);
+                }
+            }
+            pop();
 
-            // 绘制杆
+            // 轨迹2 (m2) - 橙色，透明度渐变
+            push();
+            noFill();
+            if (trail2.length > 1) {
+                for (let i = 1; i < trail2.length; i++) {
+                    const alpha = map(i, 0, trail2.length, 20, 120);
+                    stroke(255, 107, 53, alpha);
+                    strokeWeight(1.2);
+                    line(trail2[i - 1].x, trail2[i - 1].y, trail2[i].x, trail2[i].y);
+                }
+            }
+            pop();
+
+            // ===== 绘制杆 =====
             push();
             stroke(40, 50, 70);
             strokeWeight(2);
@@ -345,23 +394,30 @@
             line(x1, y1, x2, y2);
             pop();
 
-            // 绘制支点
+            // ===== 绘制支点 =====
             push();
             fill(40, 50, 70);
             noStroke();
             ellipse(originX, originY, 12, 12);
+            // 支点十字标记
+            stroke(40, 50, 70);
+            strokeWeight(1);
+            line(originX - 16, originY, originX + 16, originY);
+            line(originX, originY - 16, originX, originY + 16);
             pop();
 
-            // 绘制质量块
+            // ===== 绘制质量块 =====
             push();
             noStroke();
+            // m1 - 蓝色
             fill(45, 120, 255);
             ellipse(x1, y1, m1 * 1.2, m1 * 1.2);
+            // m2 - 橙色
             fill(255, 107, 53);
             ellipse(x2, y2, m2 * 1.2, m2 * 1.2);
             pop();
 
-            // 标签
+            // ===== 标签 =====
             push();
             fill(40, 50, 70);
             noStroke();
@@ -370,23 +426,20 @@
             text('m₁', x1 + 14, y1 - 4);
             text('m₂', x2 + 14, y2 - 4);
             textAlign(RIGHT, TOP);
-            text('Time: ' + time.toFixed(1) + ' s  |  Speed: ' + timeScale.toFixed(1) + 'x', width - 16, 16);
+            text('Time: ' + time.toFixed(1) + ' s  |  Speed: ' + timeScale.toFixed(1) + 'x  |  Trail: ' + trail1.length +
+                ' pts', width - 16, 16);
             pop();
-        }
 
-        function drawTrail() {
+            // ===== 显示轨迹长度提示 =====
             push();
-            noFill();
-            stroke(45, 120, 255, 80);
-            strokeWeight(1.5);
-            beginShape();
-            for (const p of trail1) vertex(p.x, p.y);
-            endShape();
-            stroke(255, 107, 53, 80);
-            strokeWeight(1.5);
-            beginShape();
-            for (const p of trail2) vertex(p.x, p.y);
-            endShape();
+            fill(100, 110, 130);
+            noStroke();
+            textSize(12);
+            textAlign(CENTER, BOTTOM);
+            const totalPts = trail1.length + trail2.length;
+            if (totalPts > 0) {
+                text('Permanent trail · Click "Clear Trail" to erase', width / 2, height - 8);
+            }
             pop();
         }
 
