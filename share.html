@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PhysicsLab · Resources</title>
+
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
+    </script>
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -122,7 +127,7 @@
 
         .file-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 14px;
             margin-top: 20px;
         }
@@ -177,19 +182,39 @@
             letter-spacing: 0.3px;
             align-self: flex-start;
         }
+        .file-card .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+            width: 100%;
+        }
         .file-card .download {
             background: #2d7aff;
             color: white;
-            padding: 5px 20px;
+            padding: 5px 0;
             border-radius: 16px;
             text-decoration: none;
             font-size: 13px;
             transition: background 0.2s;
             font-weight: 500;
             text-align: center;
-            margin-top: auto;
+            flex: 1;
         }
         .file-card .download:hover { background: #1a5fd0; }
+        .file-card .preview-btn {
+            background: #ffc107;
+            color: #1a2332;
+            border: none;
+            border-radius: 16px;
+            padding: 5px 0;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex: 1;
+            font-family: inherit;
+        }
+        .file-card .preview-btn:hover { background: #e6a800; }
 
         .loading, .error, .no-results, .empty-cat {
             text-align: center;
@@ -208,351 +233,491 @@
             text-align: center;
         }
 
+        /* ===== PDF Modal ===== */
+        .pdf-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .pdf-modal.show { display: flex; }
+        .pdf-modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .pdf-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e9ecf0;
+            background: #f8faff;
+            flex-shrink: 0;
+        }
+        .pdf-modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a2332;
+            margin: 0;
+        }
+        .pdf-modal-header .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7f94;
+            padding: 0 8px;
+        }
+        .pdf-modal-header .close-btn:hover { color: #d1453b; }
+        .pdf-modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f5f7fa;
+            min-height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .pdf-modal-body canvas {
+            display: block;
+            max-width: 100%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .pdf-modal-body .pdf-loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7f94;
+        }
+        .pdf-modal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            border-top: 1px solid #e9ecf0;
+            background: #f8faff;
+            flex-shrink: 0;
+        }
+        .pdf-modal-footer .page-info {
+            font-size: 14px;
+            color: #4a5a6e;
+        }
+        .pdf-modal-footer .pdf-nav-btn {
+            background: #2d7aff;
+            color: white;
+            border: none;
+            padding: 6px 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: inherit;
+        }
+        .pdf-modal-footer .pdf-nav-btn:hover { background: #1a5fd0; }
+        .pdf-modal-footer .pdf-nav-btn:disabled {
+            background: #c0c8d4;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 640px) {
             .top-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
             .top-bar .nav-links { gap: 18px; flex-wrap: wrap; }
             .file-grid { grid-template-columns: 1fr 1fr; }
             .toolbar { flex-direction: column; align-items: stretch; }
             .filter-group { justify-content: center; }
+            .pdf-modal-content { max-width: 100%; max-height: 100vh; border-radius: 0; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- Navigation -->
-    <div class="top-bar">
-        <div class="logo">Physics<span>Lab</span></div>
-        <div class="nav-links">
-            <a href="index.html" data-key="nav_home">Home</a>
-            <a href="share.html" class="active" data-key="nav_resources">Resources</a>
-            <a href="simulations.html" data-key="nav_simulations">Simulations</a>
-            <button id="langToggle" class="lang-btn">中文</button>
+    <div class="container">
+
+        <!-- Navigation -->
+        <div class="top-bar">
+            <div class="logo">Physics<span>Lab</span></div>
+            <div class="nav-links">
+                <a href="index.html" data-key="nav_home">Home</a>
+                <a href="share.html" class="active" data-key="nav_resources">Resources</a>
+                <a href="simulations.html" data-key="nav_simulations">Simulations</a>
+                <button id="langToggle" class="lang-btn">中文</button>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1 data-key="resources_title">Learning <span>Resources</span></h1>
+            <p data-key="resources_sub">Lecture notes, problem sets, and reference materials — organised by topic.</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-bar" id="statsBar">
+            <span><span id="totalCats">0</span> <span data-key="stats_categories">categories</span></span>
+            <span><span id="totalFiles">0</span> <span data-key="stats_files">files</span></span>
+            <span><span id="totalSize">0</span></span>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <input class="search-box" id="searchInput" type="text" data-key="resources_search" placeholder="Search by filename or path..." />
+            <div class="filter-group" id="filterGroup"></div>
+        </div>
+
+        <!-- File list -->
+        <div id="file-container">
+            <div class="loading" data-key="resources_loading">Loading resources...</div>
+        </div>
+        <div class="no-results" id="noResults" data-key="resources_no_results">No files match your search or filter.</div>
+
+        <!-- Footer -->
+        <div class="footer-note" data-key="footer">PhysicsLab · built with GitHub Pages · 2026</div>
+    </div>
+
+    <!-- ===== PDF Modal ===== -->
+    <div class="pdf-modal" id="pdfModal">
+        <div class="pdf-modal-content">
+            <div class="pdf-modal-header">
+                <h3 id="pdfModalTitle">PDF Preview</h3>
+                <button class="close-btn" id="pdfModalClose">×</button>
+            </div>
+            <div class="pdf-modal-body" id="pdfModalBody">
+                <div class="pdf-loading">Loading PDF...</div>
+            </div>
+            <div class="pdf-modal-footer">
+                <button class="pdf-nav-btn" id="pdfPrevBtn">Previous</button>
+                <span class="page-info" id="pdfPageInfo">Page 1 / 1</span>
+                <button class="pdf-nav-btn" id="pdfNextBtn">Next</button>
+            </div>
         </div>
     </div>
 
-    <!-- Header -->
-    <div class="page-header">
-        <h1 data-key="resources_title">Learning <span>Resources</span></h1>
-        <p data-key="resources_sub">Lecture notes, problem sets, and reference materials — organised by topic.</p>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats-bar" id="statsBar">
-        <span><span id="totalCats">0</span> <span data-key="stats_categories">categories</span></span>
-        <span><span id="totalFiles">0</span> <span data-key="stats_files">files</span></span>
-        <span><span id="totalSize">0</span></span>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="toolbar">
-        <input class="search-box" id="searchInput" type="text" data-key="resources_search" placeholder="Search by filename or path..." />
-        <div class="filter-group" id="filterGroup"></div>
-    </div>
-
-    <!-- File list -->
-    <div id="file-container">
-        <div class="loading" data-key="resources_loading">Loading resources...</div>
-    </div>
-    <div class="no-results" id="noResults" data-key="resources_no_results">No files match your search or filter.</div>
-
-    <!-- Footer -->
-    <div class="footer-note" data-key="footer">PhysicsLab · built with GitHub Pages · 2026</div>
-</div>
-
-<script>
-    // ============================================================
-    //  LANGUAGE SUPPORT
-    // ============================================================
-    const translations = {
-        zh: {
-            nav_home: '首页',
-            nav_resources: '资料库',
-            nav_simulations: '仿真',
-            resources_title: '学习资料',
-            resources_sub: '按主题分类的讲义、习题和参考资料',
-            resources_search: '搜索文件名或路径...',
-            resources_loading: '加载资料中...',
-            resources_no_results: '没有匹配的文件。',
-            stats_categories: '个分类',
-            stats_files: '个文件',
-            footer: 'PhysicsLab · 基于 GitHub Pages 构建 · 2026'
-        },
-        en: {
-            nav_home: 'Home',
-            nav_resources: 'Resources',
-            nav_simulations: 'Simulations',
-            resources_title: 'Learning Resources',
-            resources_sub: 'Lecture notes, problem sets, and reference materials — organised by topic.',
-            resources_search: 'Search by filename or path...',
-            resources_loading: 'Loading resources...',
-            resources_no_results: 'No files match your search or filter.',
-            stats_categories: 'categories',
-            stats_files: 'files',
-            footer: 'PhysicsLab · built with GitHub Pages · 2026'
-        }
-    };
-
-    let currentLang = 'en';
-
-    function switchLanguage(lang) {
-        currentLang = lang;
-        const t = translations[lang];
-        document.querySelectorAll('[data-key]').forEach(el => {
-            const key = el.dataset.key;
-            if (t[key] !== undefined) {
-                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                    el.placeholder = t[key];
-                } else {
-                    el.textContent = t[key];
-                }
+    <script>
+        // ============================================================
+        //  LANGUAGE SUPPORT
+        // ============================================================
+        const translations = {
+            zh: {
+                nav_home: '首页',
+                nav_resources: '资料库',
+                nav_simulations: '仿真',
+                resources_title: '学习资料',
+                resources_sub: '按主题分类的讲义、习题和参考资料',
+                resources_search: '搜索文件名或路径...',
+                resources_loading: '加载资料中...',
+                resources_no_results: '没有匹配的文件。',
+                stats_categories: '个分类',
+                stats_files: '个文件',
+                footer: 'PhysicsLab · 基于 GitHub Pages 构建 · 2026'
+            },
+            en: {
+                nav_home: 'Home',
+                nav_resources: 'Resources',
+                nav_simulations: 'Simulations',
+                resources_title: 'Learning Resources',
+                resources_sub: 'Lecture notes, problem sets, and reference materials — organised by topic.',
+                resources_search: 'Search by filename or path...',
+                resources_loading: 'Loading resources...',
+                resources_no_results: 'No files match your search or filter.',
+                stats_categories: 'categories',
+                stats_files: 'files',
+                footer: 'PhysicsLab · built with GitHub Pages · 2026'
             }
-        });
-        const toggleBtn = document.getElementById('langToggle');
-        if (toggleBtn) toggleBtn.textContent = lang === 'zh' ? 'English' : '中文';
-        localStorage.setItem('preferredLang', lang);
-        document.documentElement.lang = lang;
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleBtn = document.getElementById('langToggle');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', function() {
-                switchLanguage(currentLang === 'zh' ? 'en' : 'zh');
-            });
-        }
-        const savedLang = localStorage.getItem('preferredLang') || 'en';
-        switchLanguage(savedLang);
-    });
-
-    const OWNER = 'HuangZixuanCQU';
-    const REPO = 'Platform-for-Better-Physics';
-    const FOLDER = 'Resources';
-
-    // ================================================================
-    //  STATE
-    // ================================================================
-    let allFiles = [];
-    let allCategories = new Set();
-    let currentFilter = 'All';
-    let currentSearch = '';
-
-    const container = document.getElementById('file-container');
-    const searchInput = document.getElementById('searchInput');
-    const filterGroup = document.getElementById('filterGroup');
-    const noResults = document.getElementById('noResults');
-
-    // ================================================================
-    //  HELPERS
-    // ================================================================
-    function getFileInfo(name) {
-        const ext = name.split('.').pop().toLowerCase();
-        const map = {
-            'pdf': { ext: 'PDF', tag: 'Document' },
-            'tex': { ext: 'TeX', tag: 'LaTeX' },
-            'md': { ext: 'MD', tag: 'Markdown' },
-            'png': { ext: 'PNG', tag: 'Image' },
-            'jpg': { ext: 'JPG', tag: 'Image' },
-            'jpeg': { ext: 'JPEG', tag: 'Image' },
-            'svg': { ext: 'SVG', tag: 'Vector' },
-            'gif': { ext: 'GIF', tag: 'Animation' },
-            'docx': { ext: 'DOCX', tag: 'Word' },
-            'pptx': { ext: 'PPTX', tag: 'Presentation' },
-            'xlsx': { ext: 'XLSX', tag: 'Spreadsheet' },
-            'zip': { ext: 'ZIP', tag: 'Archive' },
-            'csv': { ext: 'CSV', tag: 'Data' },
-            'json': { ext: 'JSON', tag: 'Data' },
-            'py': { ext: 'PY', tag: 'Python' },
-            'ipynb': { ext: 'IPYNB', tag: 'Jupyter' },
-            'txt': { ext: 'TXT', tag: 'Text' },
-            'c': { ext: 'C', tag: 'C/C++' },
-            'cpp': { ext: 'CPP', tag: 'C/C++' },
-            'h': { ext: 'H', tag: 'C/C++' },
-            'java': { ext: 'JAVA', tag: 'Java' },
-            'mat': { ext: 'MAT', tag: 'MATLAB' },
-            'm': { ext: 'M', tag: 'MATLAB' },
         };
-        return map[ext] || { ext: ext.toUpperCase(), tag: 'File' };
-    }
 
-    function formatSize(bytes) {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / 1048576).toFixed(1) + ' MB';
-    }
+        let currentLang = 'en';
 
-    function getCategoryFromPath(path) {
-        const parts = path.split('/');
-        if (parts.length > 1 && parts[0] === FOLDER) {
-            return parts[1] || 'Uncategorized';
-        }
-        if (parts.length > 0 && parts[0] !== FOLDER) {
-            return parts[0] || 'Uncategorized';
-        }
-        return 'Uncategorized';
-    }
-
-    function getDisplayPath(fullPath) {
-        const parts = fullPath.split('/');
-        if (parts.length > 0 && parts[0] === FOLDER) {
-            return parts.slice(1).join('/');
-        }
-        return fullPath;
-    }
-
-    function getFolderPath(fullPath) {
-        const parts = fullPath.split('/');
-        let startIndex = 0;
-        if (parts.length > 0 && parts[0] === FOLDER) {
-            startIndex = 1;
-        }
-        const folderParts = parts.slice(startIndex, -1);
-        return folderParts.join(' / ');
-    }
-
-    // ================================================================
-    //  FETCH FILES (Recursive)
-    // ================================================================
-
-    async function fetchAllFilesRecursive(path, fileList = []) {
-        try {
-            const items = await fetchContents(path);
-            for (const item of items) {
-                if (item.type === 'file') {
-                    fileList.push({
-                        path: item.path,
-                        name: item.name,
-                        size: item.size,
-                        download_url: item.download_url,
-                        sha: item.sha,
-                    });
-                } else if (item.type === 'dir') {
-                    await fetchAllFilesRecursive(item.path, fileList);
+        function switchLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.dataset.key;
+                if (t[key] !== undefined) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = t[key];
+                    } else {
+                        el.textContent = t[key];
+                    }
                 }
-            }
-        } catch (err) {
-            console.warn('Error fetching', path, err);
-        }
-        return fileList;
-    }
-
-    async function fetchContents(path) {
-        const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Failed to access ${path}`);
-        return await res.json();
-    }
-
-    // ================================================================
-    //  RENDER
-    // ================================================================
-
-    function buildFilterButtons() {
-        const sortedCats = Array.from(allCategories).sort();
-        let html = `<button class="filter-btn active" data-filter="All">All <span class="count">(${allFiles.length})</span></button>`;
-        for (const cat of sortedCats) {
-            const count = allFiles.filter(f => f.category === cat).length;
-            html += `<button class="filter-btn" data-filter="${cat}">${cat} <span class="count">(${count})</span></button>`;
-        }
-        filterGroup.innerHTML = html;
-
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentFilter = this.dataset.filter;
-                applyFilters();
             });
-        });
-    }
-
-    function applyFilters() {
-        const searchLower = currentSearch.toLowerCase().trim();
-        let hasVisible = false;
-
-        const cards = document.querySelectorAll('.file-card');
-        cards.forEach(card => {
-            const fileName = card.dataset.filename.toLowerCase();
-            const filePath = card.dataset.path.toLowerCase();
-            const fileCat = card.dataset.category;
-
-            const matchesSearch = !searchLower ||
-                fileName.includes(searchLower) ||
-                filePath.includes(searchLower);
-
-            const matchesFilter = currentFilter === 'All' || fileCat === currentFilter;
-
-            const visible = matchesSearch && matchesFilter;
-            card.classList.toggle('hidden', !visible);
-            if (visible) hasVisible = true;
-        });
-
-        noResults.style.display = hasVisible ? 'none' : 'block';
-    }
-
-    function renderFiles() {
-        if (allFiles.length === 0) {
-            container.innerHTML = `<div class="empty-cat">No resources found. Please upload files to the docs/ folder.</div>`;
-            document.getElementById('totalCats').textContent = '0';
-            document.getElementById('totalFiles').textContent = '0';
-            document.getElementById('totalSize').textContent = '0';
-            filterGroup.innerHTML = '';
-            return;
+            const toggleBtn = document.getElementById('langToggle');
+            if (toggleBtn) toggleBtn.textContent = lang === 'zh' ? 'English' : '中文';
+            localStorage.setItem('preferredLang', lang);
+            document.documentElement.lang = lang;
         }
 
-        const totalSize = allFiles.reduce((sum, f) => sum + f.size, 0);
-        document.getElementById('totalCats').textContent = allCategories.size;
-        document.getElementById('totalFiles').textContent = allFiles.length;
-        document.getElementById('totalSize').textContent = formatSize(totalSize);
-
-        allFiles.sort((a, b) => a.path.localeCompare(b.path));
-
-        let html = '<div class="file-grid">';
-        for (const file of allFiles) {
-            const info = getFileInfo(file.name);
-            const folderPath = getFolderPath(file.path);
-            const category = file.category;
-
-            const safePath = file.path.replace(/"/g, '&quot;');
-
-            html += `
-                <div class="file-card" data-filename="${file.name.toLowerCase()}" data-path="${safePath}" data-category="${category}">
-                    <div class="ext">${info.ext}</div>
-                    <div class="name">${file.name}</div>
-                    <div class="path">${folderPath || 'root'}</div>
-                    <div class="tag">${info.tag}</div>
-                    <a class="download" href="${file.download_url}" target="_blank">Download</a>
-                </div>
-            `;
-        }
-        html += '</div>';
-
-        container.innerHTML = html;
-
-        buildFilterButtons();
-
-        searchInput.addEventListener('input', function() {
-            currentSearch = this.value;
-            applyFilters();
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('langToggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    switchLanguage(currentLang === 'zh' ? 'en' : 'zh');
+                });
+            }
+            const savedLang = localStorage.getItem('preferredLang') || 'en';
+            switchLanguage(savedLang);
         });
 
-        currentFilter = 'All';
-        currentSearch = '';
-        applyFilters();
-    }
+        // ============================================================
+        //  FILE LOADING
+        // ============================================================
+        const OWNER = '你的GitHub用户名';
+        const REPO = '你的仓库名';
+        const FOLDER = 'docs';
 
-    // ================================================================
-    //  LOAD ALL FILES
-    // ================================================================
+        const container = document.getElementById('file-container');
+        const searchInput = document.getElementById('searchInput');
+        const filterGroup = document.getElementById('filterGroup');
+        const noResults = document.getElementById('noResults');
 
-    async function loadAll() {
-        try {
-            container.innerHTML = '<div class="loading">Loading resources...</div>';
+        let allFiles = [];
+        let allCategories = new Set();
+        let currentFilter = 'All';
+        let currentSearch = '';
 
-            const files = await fetchAllFilesRecursive(FOLDER);
+        function getFileInfo(name) {
+            const ext = name.split('.').pop().toLowerCase();
+            const map = {
+                'pdf': { ext: 'PDF', tag: 'Document' },
+                'tex': { ext: 'TeX', tag: 'LaTeX' },
+                'md': { ext: 'MD', tag: 'Markdown' },
+                'png': { ext: 'PNG', tag: 'Image' },
+                'jpg': { ext: 'JPG', tag: 'Image' },
+                'jpeg': { ext: 'JPEG', tag: 'Image' },
+                'svg': { ext: 'SVG', tag: 'Vector' },
+                'gif': { ext: 'GIF', tag: 'Animation' },
+                'docx': { ext: 'DOCX', tag: 'Word' },
+                'pptx': { ext: 'PPTX', tag: 'Presentation' },
+                'xlsx': { ext: 'XLSX', tag: 'Spreadsheet' },
+                'zip': { ext: 'ZIP', tag: 'Archive' },
+                'csv': { ext: 'CSV', tag: 'Data' },
+                'json': { ext: 'JSON', tag: 'Data' },
+                'py': { ext: 'PY', tag: 'Python' },
+                'ipynb': { ext: 'IPYNB', tag: 'Jupyter' },
+                'txt': { ext: 'TXT', tag: 'Text' },
+                'c': { ext: 'C', tag: 'C/C++' },
+                'cpp': { ext: 'CPP', tag: 'C/C++' },
+                'h': { ext: 'H', tag: 'C/C++' },
+                'java': { ext: 'JAVA', tag: 'Java' },
+                'mat': { ext: 'MAT', tag: 'MATLAB' },
+                'm': { ext: 'M', tag: 'MATLAB' },
+            };
+            return map[ext] || { ext: ext.toUpperCase(), tag: 'File' };
+        }
 
-            if (files.length === 0) {
-                container.innerHTML = `<div class="empty-cat">No resources found. Please upload files to the docs/ folder.</div>`;
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        function getCategoryFromPath(path) {
+            const parts = path.split('/');
+            if (parts.length > 1 && parts[0] === FOLDER) {
+                return parts[1] || 'Uncategorized';
+            }
+            if (parts.length > 0 && parts[0] !== FOLDER) {
+                return parts[0] || 'Uncategorized';
+            }
+            return 'Uncategorized';
+        }
+
+        function getFolderPath(fullPath) {
+            const parts = fullPath.split('/');
+            let startIndex = 0;
+            if (parts.length > 0 && parts[0] === FOLDER) {
+                startIndex = 1;
+            }
+            const folderParts = parts.slice(startIndex, -1);
+            return folderParts.join(' / ');
+        }
+
+        async function fetchAllFilesRecursive(path, fileList = []) {
+            try {
+                const items = await fetchContents(path);
+                for (const item of items) {
+                    if (item.type === 'file') {
+                        fileList.push({
+                            path: item.path,
+                            name: item.name,
+                            size: item.size,
+                            download_url: item.download_url,
+                            sha: item.sha,
+                        });
+                    } else if (item.type === 'dir') {
+                        await fetchAllFilesRecursive(item.path, fileList);
+                    }
+                }
+            } catch (err) {
+                console.warn('Error fetching', path, err);
+            }
+            return fileList;
+        }
+
+        async function fetchContents(path) {
+            const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`Failed to access ${path}`);
+            return await res.json();
+        }
+
+        function buildFilterButtons() {
+            const sortedCats = Array.from(allCategories).sort();
+            let html =
+                `<button class="filter-btn active" data-filter="All">All <span class="count">(${allFiles.length})</span></button>`;
+            for (const cat of sortedCats) {
+                const count = allFiles.filter(f => f.category === cat).length;
+                html += `<button class="filter-btn" data-filter="${cat}">${cat} <span class="count">(${count})</span></button>`;
+            }
+            filterGroup.innerHTML = html;
+
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    applyFilters();
+                });
+            });
+        }
+
+        function applyFilters() {
+            const searchLower = currentSearch.toLowerCase().trim();
+            let hasVisible = false;
+
+            const cards = document.querySelectorAll('.file-card');
+            cards.forEach(card => {
+                const fileName = card.dataset.filename.toLowerCase();
+                const filePath = card.dataset.path.toLowerCase();
+                const fileCat = card.dataset.category;
+
+                const matchesSearch = !searchLower ||
+                    fileName.includes(searchLower) ||
+                    filePath.includes(searchLower);
+
+                const matchesFilter = currentFilter === 'All' || fileCat === currentFilter;
+
+                const visible = matchesSearch && matchesFilter;
+                card.classList.toggle('hidden', !visible);
+                if (visible) hasVisible = true;
+            });
+
+            noResults.style.display = hasVisible ? 'none' : 'block';
+        }
+
+        // ============================================================
+        //  PDF PREVIEW
+        // ============================================================
+        let pdfDoc = null;
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentScale = 1.2;
+
+        const pdfModal = document.getElementById('pdfModal');
+        const pdfModalBody = document.getElementById('pdfModalBody');
+        const pdfModalTitle = document.getElementById('pdfModalTitle');
+        const pdfPageInfo = document.getElementById('pdfPageInfo');
+        const pdfPrevBtn = document.getElementById('pdfPrevBtn');
+        const pdfNextBtn = document.getElementById('pdfNextBtn');
+        const pdfModalClose = document.getElementById('pdfModalClose');
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        function renderPage(pageNum) {
+            pdfDoc.getPage(pageNum).then(function(page) {
+                const viewport = page.getViewport({ scale: currentScale });
+                pdfModalBody.innerHTML = '<div class="pdf-loading">Rendering page...</div>';
+
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const context = canvas.getContext('2d');
+
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                page.render(renderContext).promise.then(function() {
+                    pdfModalBody.innerHTML = '';
+                    pdfModalBody.appendChild(canvas);
+                });
+            });
+
+            pdfPageInfo.textContent = `Page ${pageNum} / ${totalPages}`;
+            pdfPrevBtn.disabled = pageNum <= 1;
+            pdfNextBtn.disabled = pageNum >= totalPages;
+        }
+
+        function openPDF(url, name) {
+            pdfModalTitle.textContent = name || 'PDF Preview';
+            pdfModalBody.innerHTML = '<div class="pdf-loading">Loading PDF...</div>';
+            pdfModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+
+            pdfjsLib.getDocument(url).promise.then(function(pdf) {
+                pdfDoc = pdf;
+                totalPages = pdf.numPages;
+                currentPage = 1;
+                renderPage(currentPage);
+            }).catch(function(err) {
+                pdfModalBody.innerHTML =
+                    `<div style="color:red;padding:40px;text-align:center;">Failed to load PDF: ${err.message}</div>`;
+            });
+        }
+
+        function closePDF() {
+            pdfModal.classList.remove('show');
+            document.body.style.overflow = '';
+            pdfDoc = null;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderPage(currentPage);
+            }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderPage(currentPage);
+            }
+        }
+
+        pdfModalClose.addEventListener('click', closePDF);
+        pdfModal.addEventListener('click', function(e) {
+            if (e.target === pdfModal) closePDF();
+        });
+        pdfPrevBtn.addEventListener('click', prevPage);
+        pdfNextBtn.addEventListener('click', nextPage);
+
+        document.addEventListener('keydown', function(e) {
+            if (!pdfModal.classList.contains('show')) return;
+            if (e.key === 'Escape') closePDF();
+            if (e.key === 'ArrowLeft') prevPage();
+            if (e.key === 'ArrowRight') nextPage();
+        });
+
+        // ============================================================
+        //  RENDER
+        // ============================================================
+        function renderFiles() {
+            if (allFiles.length === 0) {
+                container.innerHTML =
+                `<div class="empty-cat" data-key="resources_empty">No resources found. Please upload files to the docs/ folder.</div>`;
                 document.getElementById('totalCats').textContent = '0';
                 document.getElementById('totalFiles').textContent = '0';
                 document.getElementById('totalSize').textContent = '0';
@@ -560,26 +725,95 @@
                 return;
             }
 
-            allFiles = files.map(f => {
-                const category = getCategoryFromPath(f.path);
-                allCategories.add(category);
-                return { ...f, category };
+            const totalSize = allFiles.reduce((sum, f) => sum + f.size, 0);
+            document.getElementById('totalCats').textContent = allCategories.size;
+            document.getElementById('totalFiles').textContent = allFiles.length;
+            document.getElementById('totalSize').textContent = formatSize(totalSize);
+
+            allFiles.sort((a, b) => a.path.localeCompare(b.path));
+
+            let html = '<div class="file-grid">';
+            for (const file of allFiles) {
+                const info = getFileInfo(file.name);
+                const folderPath = getFolderPath(file.path);
+                const category = file.category;
+                const isPDF = file.name.toLowerCase().endsWith('.pdf');
+
+                const safePath = file.path.replace(/"/g, '&quot;');
+
+                html += `
+                        <div class="file-card" data-filename="${file.name.toLowerCase()}" data-path="${safePath}" data-category="${category}">
+                            <div class="ext">${info.ext}</div>
+                            <div class="name">${file.name}</div>
+                            <div class="path">${folderPath || 'root'}</div>
+                            <div class="tag">${info.tag}</div>
+                            <div class="btn-group">
+                                <a class="download" href="${file.download_url}" target="_blank" data-key="btn_download">Download</a>
+                                ${isPDF ? `<button class="preview-btn" data-url="${file.download_url}" data-name="${file.name}" data-key="btn_preview">Preview</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+            }
+            html += '</div>';
+
+            container.innerHTML = html;
+
+            // 为 Preview 按钮绑定事件
+            document.querySelectorAll('.preview-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const url = this.dataset.url;
+                    const name = this.dataset.name;
+                    openPDF(url, name);
+                });
             });
 
-            renderFiles();
+            buildFilterButtons();
 
-        } catch (err) {
-            container.innerHTML = `<div class="error">Failed to load: ${err.message}</div>`;
-            console.error(err);
+            searchInput.addEventListener('input', function() {
+                currentSearch = this.value;
+                applyFilters();
+            });
+
+            currentFilter = 'All';
+            currentSearch = '';
+            applyFilters();
         }
-    }
 
-    loadAll();
+        // ============================================================
+        //  LOAD
+        // ============================================================
+        async function loadAll() {
+            try {
+                container.innerHTML = '<div class="loading" data-key="resources_loading">Loading resources...</div>';
 
+                const files = await fetchAllFilesRecursive(FOLDER);
 
+                if (files.length === 0) {
+                    container.innerHTML =
+                        `<div class="empty-cat" data-key="resources_empty">No resources found. Please upload files to the docs/ folder.</div>`;
+                    document.getElementById('totalCats').textContent = '0';
+                    document.getElementById('totalFiles').textContent = '0';
+                    document.getElementById('totalSize').textContent = '0';
+                    filterGroup.innerHTML = '';
+                    return;
+                }
 
-    
-</script>
+                allFiles = files.map(f => {
+                    const category = getCategoryFromPath(f.path);
+                    allCategories.add(category);
+                    return { ...f, category };
+                });
+
+                renderFiles();
+
+            } catch (err) {
+                container.innerHTML = `<div class="error">Failed to load: ${err.message}</div>`;
+                console.error(err);
+            }
+        }
+
+        loadAll();
+    </script>
 
 </body>
 </html>
