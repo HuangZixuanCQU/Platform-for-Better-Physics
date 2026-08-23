@@ -97,6 +97,8 @@
         }
         .canvas-wrapper canvas {
             display: block;
+            width: 100%;
+            height: auto;
             border-radius: 16px;
             background: #fafcff;
             border: 1px solid #eef3f8;
@@ -346,10 +348,12 @@
         let ballVel = null;
 
         // ----- Display constants -----
-        let scaleFactor = 3.6; // pixels per meter
+        let scaleFactor = 3.8;
         let groundY = 410;
         let originX = 110;
         let ballRadius = 10;
+        let canvasW = 780;
+        let canvasH = 480;
 
         // ----- DOM refs -----
         const speedSlider = document.getElementById('speedSlider');
@@ -370,7 +374,7 @@
         // ============================================================
 
         function setup() {
-            const canvas = createCanvas(780, 480);
+            const canvas = createCanvas(canvasW, canvasH);
             canvas.parent('p5canvas');
             pixelDensity(1);
             textFont('Segoe UI, system-ui, sans-serif');
@@ -452,21 +456,36 @@
             // ----- Ground -----
             push();
             stroke(60, 70, 90);
-            strokeWeight(2);
+            strokeWeight(2.2);
             line(0, groundY, width, groundY);
+            // Ground label
+            fill(60, 70, 90);
+            noStroke();
+            textSize(11);
+            textAlign(LEFT, TOP);
+            text('Ground', 6, groundY + 6);
             pop();
 
             // ----- Launch point -----
             const launchX = originX;
             const launchY = groundY - heightM * scaleFactor;
+            // Clamp launchY to visible range
+            const clampedLaunchY = constrain(launchY, 10, groundY - 2);
+
             push();
             fill(30, 41, 59);
             noStroke();
-            circle(launchX, launchY, 8);
+            circle(originX, clampedLaunchY, 8);
             stroke(30, 41, 59, 80);
             strokeWeight(1.2);
-            line(launchX - 14, launchY, launchX + 14, launchY);
-            line(launchX, launchY - 14, launchX, launchY + 14);
+            line(originX - 14, clampedLaunchY, originX + 14, clampedLaunchY);
+            line(originX, clampedLaunchY - 14, originX, clampedLaunchY + 14);
+            // Launch point label
+            fill(30, 41, 59, 180);
+            noStroke();
+            textSize(11);
+            textAlign(LEFT, BOTTOM);
+            text('Launch', originX + 16, clampedLaunchY - 2);
             pop();
 
             // ----- Safety parabola (envelope) -----
@@ -477,7 +496,9 @@
                 strokeWeight(2);
                 beginShape();
                 for (const p of envelopePoints) {
-                    vertex(p.x, p.y);
+                    if (p.x >= 0 && p.x <= width && p.y >= 0 && p.y <= height) {
+                        vertex(p.x, p.y);
+                    }
                 }
                 endShape();
                 // dashed extension
@@ -485,9 +506,12 @@
                 strokeWeight(1.5);
                 drawingContext.setLineDash([6, 8]);
                 beginShape();
-                const startIdx = Math.floor(envelopePoints.length * 0.5);
+                const startIdx = Math.floor(envelopePoints.length * 0.4);
                 for (let i = startIdx; i < envelopePoints.length; i++) {
-                    vertex(envelopePoints[i].x, envelopePoints[i].y);
+                    const p = envelopePoints[i];
+                    if (p.x >= 0 && p.x <= width && p.y >= 0 && p.y <= height) {
+                        vertex(p.x, p.y);
+                    }
                 }
                 endShape();
                 drawingContext.setLineDash([]);
@@ -502,7 +526,9 @@
                 strokeWeight(2.8);
                 beginShape();
                 for (const p of trailPoints) {
-                    vertex(p.x, p.y);
+                    if (p.x >= 0 && p.x <= width && p.y >= 0 && p.y <= height) {
+                        vertex(p.x, p.y);
+                    }
                 }
                 endShape();
                 // Glow effect
@@ -510,19 +536,11 @@
                 strokeWeight(6);
                 beginShape();
                 for (const p of trailPoints) {
-                    vertex(p.x, p.y);
+                    if (p.x >= 0 && p.x <= width && p.y >= 0 && p.y <= height) {
+                        vertex(p.x, p.y);
+                    }
                 }
                 endShape();
-                pop();
-
-                // Trail dots
-                push();
-                for (let i = 0; i < trailPoints.length; i += 4) {
-                    const alpha = map(i, 0, trailPoints.length, 30, 100);
-                    fill(45, 120, 255, alpha);
-                    noStroke();
-                    circle(trailPoints[i].x, trailPoints[i].y, 3.5);
-                }
                 pop();
             }
 
@@ -535,30 +553,32 @@
                     if ((p1.y - groundY) * (p2.y - groundY) <= 0 && p1.y >= groundY - 2) {
                         const t = (groundY - p1.y) / (p2.y - p1.y);
                         const xCross = p1.x + t * (p2.x - p1.x);
-                        groundCross = createVector(xCross, groundY);
-                        break;
+                        if (xCross >= 0 && xCross <= width) {
+                            groundCross = createVector(xCross, groundY);
+                            break;
+                        }
                     }
                 }
                 if (groundCross) {
+                    const rangeM = (groundCross.x - originX) / scaleFactor;
                     push();
                     // Range bar
                     fill(40, 167, 69, 60);
                     noStroke();
-                    rect(launchX, groundY - 3, groundCross.x - launchX, 6);
+                    rect(originX, groundY - 3, groundCross.x - originX, 6);
                     stroke(40, 167, 69, 200);
                     strokeWeight(2);
-                    line(launchX, groundY, groundCross.x, groundY);
+                    line(originX, groundY, groundCross.x, groundY);
                     // Arrow tip
                     fill(40, 167, 69);
                     noStroke();
                     circle(groundCross.x, groundY, 6);
                     // Range label
-                    const rangeM = (groundCross.x - launchX) / scaleFactor;
                     fill(40, 167, 69, 220);
                     noStroke();
                     textSize(13);
                     textAlign(CENTER, BOTTOM);
-                    text('R = ' + rangeM.toFixed(1) + ' m', (launchX + groundCross.x) / 2, groundY - 10);
+                    text('R = ' + max(0, rangeM).toFixed(1) + ' m', (originX + groundCross.x) / 2, groundY - 10);
                     pop();
                 }
             }
@@ -566,8 +586,10 @@
             // ----- Velocity vector -----
             if (showVelocity && ballPos && ballVel) {
                 const vScale = 2.2;
-                const endX = ballPos.x + ballVel.x * vScale;
-                const endY = ballPos.y + ballVel.y * vScale;
+                const endX = constrain(ballPos.x + ballVel.x * vScale, 0, width);
+                const endY = constrain(ballPos.y + ballVel.y * vScale, 0, height);
+                const speedMag = sqrt(ballVel.x * ballVel.x + ballVel.y * ballVel.y) / scaleFactor;
+
                 push();
                 stroke(255, 107, 53);
                 strokeWeight(2.5);
@@ -583,39 +605,42 @@
                 triangle(0, 0, -headLen, -headLen * 0.4, -headLen, headLen * 0.4);
                 pop();
                 // Speed label
-                const speedMag = sqrt(ballVel.x * ballVel.x + ballVel.y * ballVel.y) / scaleFactor;
                 fill(255, 107, 53);
                 noStroke();
                 textSize(12);
                 textAlign(LEFT, BOTTOM);
-                text('v = ' + speedMag.toFixed(1) + ' m/s', endX + 8, endY - 4);
+                const labelX = constrain(endX + 8, 10, width - 10);
+                const labelY = constrain(endY - 4, 20, height - 10);
+                text('v = ' + speedMag.toFixed(1) + ' m/s', labelX, labelY);
                 pop();
             }
 
             // ----- Ball -----
             if (ballPos) {
+                const bx = constrain(ballPos.x, 0, width);
+                const by = constrain(ballPos.y, 0, height);
                 // Shadow
                 push();
                 noStroke();
                 fill(0, 0, 0, 40);
-                ellipse(ballPos.x + 3, ballPos.y + 6, ballRadius * 1.5, ballRadius * 0.5);
+                ellipse(bx + 3, by + 6, ballRadius * 1.5, ballRadius * 0.5);
                 pop();
                 // Ball
                 push();
                 const grad = drawingContext.createRadialGradient(
-                    ballPos.x - 4, ballPos.y - 6, 3,
-                    ballPos.x, ballPos.y, ballRadius + 4
+                    bx - 4, by - 6, 3,
+                    bx, by, ballRadius + 4
                 );
                 grad.addColorStop(0, '#60a5fa');
                 grad.addColorStop(0.6, '#2563eb');
                 grad.addColorStop(1, '#1e40af');
                 drawingContext.fillStyle = grad;
                 drawingContext.beginPath();
-                drawingContext.arc(ballPos.x, ballPos.y, ballRadius, 0, Math.PI * 2);
+                drawingContext.arc(bx, by, ballRadius, 0, Math.PI * 2);
                 drawingContext.fill();
                 // Highlight
                 fill(255, 255, 255, 120);
-                ellipse(ballPos.x - 3, ballPos.y - 5, 6, 4);
+                ellipse(bx - 3, by - 5, 6, 4);
                 pop();
             }
 
@@ -625,11 +650,12 @@
             noStroke();
             textSize(13);
             textAlign(LEFT, TOP);
-            text('v₀ = ' + v0.toFixed(1) + ' m/s  |  θ = ' + angleDeg.toFixed(0) + '°  |  h = ' + heightM.toFixed(1) + ' m',
-                16, 14);
+            const maxH = (heightM + (v0 * v0 * sin(radians(angleDeg)) * sin(radians(angleDeg))) / (2 * gravity));
+            text('v₀ = ' + v0.toFixed(1) + ' m/s  |  θ = ' + angleDeg.toFixed(0) + '°  |  h₀ = ' + heightM.toFixed(1) +
+                ' m  |  H_max = ' + maxH.toFixed(1) + ' m', 16, 14);
             fill(148, 163, 184);
             textSize(11);
-            text('Drag sliders · real-time', 16, 34);
+            text('Drag sliders · real-time update', 16, 34);
             pop();
         }
 
@@ -662,9 +688,13 @@
                     // Linear interpolation to ground
                     const lastP = trailPoints[trailPoints.length - 1];
                     const prevP = trailPoints[trailPoints.length - 2] || lastP;
-                    const frac = (groundY - prevP.y) / (lastP.y - prevP.y);
-                    const gx = prevP.x + frac * (lastP.x - prevP.x);
-                    trailPoints.push(createVector(gx, groundY));
+                    if (lastP.y !== prevP.y) {
+                        const frac = (groundY - prevP.y) / (lastP.y - prevP.y);
+                        const gx = prevP.x + frac * (lastP.x - prevP.x);
+                        trailPoints.push(createVector(gx, groundY));
+                    } else {
+                        trailPoints.push(createVector(lastP.x, groundY));
+                    }
                     break;
                 }
                 if (px > width + 50 || px < -50) break;
@@ -674,7 +704,7 @@
             if (trailPoints.length > 0) {
                 const last = trailPoints[trailPoints.length - 1];
                 ballPos = last.copy();
-                // Velocity at last point
+                // Velocity at last point (magnitude and direction)
                 const vxPix = vx * scaleFactor;
                 const vyPix = (-vy + gravity * t) * scaleFactor;
                 ballVel = createVector(vxPix, vyPix);
@@ -687,29 +717,31 @@
             const g = gravity;
             const y0 = heightM;
             const maxRange = (v * v) / g;
-            const steps = 100;
+            const steps = 120;
 
             for (let i = 0; i <= steps; i++) {
-                const xPhys = (i / steps) * maxRange * 1.25;
+                const xPhys = (i / steps) * maxRange * 1.2;
                 const yPhys = y0 + (v * v) / (2 * g) - (g * xPhys * xPhys) / (2 * v * v);
-                if (yPhys < -1) continue;
+                if (yPhys < -0.5) continue;
                 const px = originX + xPhys * scaleFactor;
                 const py = groundY - yPhys * scaleFactor;
                 if (px > width + 20) break;
                 envelopePoints.push(createVector(px, py));
             }
-            // Negative x side (symmetric)
+            // Negative x side (symmetric) - only if launch height allows
             const negPoints = [];
-            for (let i = 1; i <= 40; i++) {
-                const xPhys = -(i / 40) * maxRange * 0.4;
+            for (let i = 1; i <= 30; i++) {
+                const xPhys = -(i / 30) * maxRange * 0.3;
                 const yPhys = y0 + (v * v) / (2 * g) - (g * xPhys * xPhys) / (2 * v * v);
-                if (yPhys < -1) continue;
+                if (yPhys < -0.5) continue;
                 const px = originX + xPhys * scaleFactor;
                 const py = groundY - yPhys * scaleFactor;
                 if (px < -20) break;
                 negPoints.push(createVector(px, py));
             }
-            envelopePoints = negPoints.reverse().concat(envelopePoints);
+            if (negPoints.length > 0) {
+                envelopePoints = negPoints.reverse().concat(envelopePoints);
+            }
         }
 
         function windowResized() {
