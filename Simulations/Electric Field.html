@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhysicsLab · Electric Field (PyScript)</title>
-
-    <link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
-    <script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
-
-    <py-config>
-        packages = ["matplotlib", "numpy"]
-    </py-config>
-
+    <title>PhysicsLab · Electric Field</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js">
+    </script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: #f5f7fa;
@@ -43,7 +41,12 @@
         }
         .top-bar .logo { font-size: 22px; font-weight: 600; color: #0a1a2b; }
         .top-bar .logo span { color: #2d7aff; }
-        .top-bar .nav-links { display: flex; gap: 28px; font-size: 15px; }
+        .top-bar .nav-links {
+            display: flex;
+            gap: 28px;
+            font-size: 15px;
+            align-items: center;
+        }
         .top-bar .nav-links a {
             color: #2c3e50;
             text-decoration: none;
@@ -60,18 +63,21 @@
         .sim-title h1 span { color: #2d7aff; }
         .sim-title p { color: #4a5a6e; font-size: 15px; }
 
-        #plot-container {
+        #canvas-container {
+            display: flex;
+            justify-content: center;
             background: #fafcff;
             border-radius: 16px;
             border: 1px solid #eef3f8;
             padding: 10px;
             margin-bottom: 16px;
-            min-height: 450px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            overflow: hidden;
         }
-        #plot-container .loading-text { color: #6b7f94; font-size: 16px; }
+        #canvas-container canvas {
+            display: block;
+            border-radius: 10px;
+            background: white;
+        }
 
         .controls {
             display: flex;
@@ -109,8 +115,8 @@
             transition: 0.15s;
             font-family: inherit;
         }
-        .btn-success { background: #28a745; color: white; }
-        .btn-success:hover { background: #1e7e34; }
+        .btn-primary { background: #2d7aff; color: white; }
+        .btn-primary:hover { background: #1a5fd0; }
         .btn-secondary { background: #e9ecf0; color: #2c3e50; }
         .btn-secondary:hover { background: #d5dae0; }
 
@@ -128,17 +134,6 @@
         .info-item .label { font-size: 12px; color: #6b7f94; text-transform: uppercase; letter-spacing: 0.3px; }
         .info-item .val { font-size: 18px; font-weight: 600; color: #1a2332; font-family: 'Courier New', monospace; }
         .info-item .val .unit { font-size: 13px; font-weight: 400; color: #6b7f94; margin-left: 2px; }
-
-        .legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-top: 12px;
-            font-size: 13px;
-            color: #4a5a6e;
-        }
-        .legend-item { display: flex; align-items: center; gap: 6px; }
-        .legend-item .color-box { width: 20px; height: 4px; border-radius: 2px; }
 
         .footer-note {
             margin-top: 32px;
@@ -160,324 +155,339 @@
 </head>
 <body>
 
-<div class="container">
-    <div class="top-bar">
-        <div class="logo">Physics<span>Lab</span></div>
-        <div class="nav-links">
-            <a href="../index.html">Home</a>
-            <a href="../share.html">Resources</a>
-            <a href="../simulations.html" class="active">Simulations</a>
+    <div class="container">
+        <div class="top-bar">
+            <div class="logo">Physics<span>Lab</span></div>
+            <div class="nav-links">
+                <a href="../index.html">Home</a>
+                <a href="../share.html">Resources</a>
+                <a href="../simulations.html" class="active">Simulations</a>
+            </div>
         </div>
+
+        <div class="sim-title">
+            <h1>Electric <span>Field</span> Visualiser</h1>
+            <p>p5.js · Real-time field lines and equipotential surfaces</p>
+        </div>
+
+        <div id="canvas-container"></div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Q₁</label>
+                <input type="range" id="q1Slider" min="-10" max="10" value="5" step="0.5">
+                <span class="value" id="q1Value">+5.0</span>
+            </div>
+            <div class="control-group">
+                <label>Q₂</label>
+                <input type="range" id="q2Slider" min="-10" max="10" value="-5" step="0.5">
+                <span class="value" id="q2Value">-5.0</span>
+            </div>
+            <div class="control-group">
+                <label>Sep</label>
+                <input type="range" id="sepSlider" min="40" max="200" value="100" step="2">
+                <span class="value" id="sepValue">100</span>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="resetBtn">Reset Dipole</button>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-item">
+                <div class="label">Configuration</div>
+                <div class="val" id="configDisplay">Dipole</div>
+            </div>
+            <div class="info-item">
+                <div class="label">Q₁</div>
+                <div class="val" id="q1Display">+5.0</div>
+            </div>
+            <div class="info-item">
+                <div class="label">Q₂</div>
+                <div class="val" id="q2Display">-5.0</div>
+            </div>
+            <div class="info-item">
+                <div class="label">Field Lines</div>
+                <div class="val" id="linesDisplay">24</div>
+            </div>
+        </div>
+
+        <div class="footer-note">PhysicsLab · p5.js · 2026</div>
     </div>
 
-    <div class="sim-title">
-        <h1>Electric <span>Field</span> Visualiser</h1>
-        <p>Python + Matplotlib · Field lines and equipotential surfaces</p>
-    </div>
+    <script>
+        // ============================================================
+        //  ELECTRIC FIELD VISUALISER (p5.js)
+        // ============================================================
 
-    <div id="plot-container">
-        <div class="loading-text">Loading Python and plotting...</div>
-    </div>
+        let q1 = 5,
+            q2 = -5;
+        let separation = 100;
+        let gridSize = 30;
+        let fieldLines = [];
+        let equipotentialPoints = [];
+        let chargePositions = [];
 
-    <div class="controls">
-        <div class="control-group">
-            <label>Q₁</label>
-            <input type="range" id="q1Slider" min="-10" max="10" value="5" step="0.5">
-            <span class="value" id="q1Value">+5.0</span>
-        </div>
-        <div class="control-group">
-            <label>Q₂</label>
-            <input type="range" id="q2Slider" min="-10" max="10" value="-5" step="0.5">
-            <span class="value" id="q2Value">-5.0</span>
-        </div>
-        <div class="control-group">
-            <label>Separation</label>
-            <input type="range" id="sepSlider" min="1" max="6" value="3" step="0.5">
-            <span class="value" id="sepValue">3.0</span>
-        </div>
-        <div class="btn-group">
-            <button class="btn btn-success" id="updateBtn">Update</button>
-            <button class="btn btn-secondary" id="resetBtn">Reset Dipole</button>
-        </div>
-    </div>
+        const q1Slider = document.getElementById('q1Slider');
+        const q2Slider = document.getElementById('q2Slider');
+        const sepSlider = document.getElementById('sepSlider');
+        const q1Value = document.getElementById('q1Value');
+        const q2Value = document.getElementById('q2Value');
+        const sepValue = document.getElementById('sepValue');
+        const resetBtn = document.getElementById('resetBtn');
+        const configDisplay = document.getElementById('configDisplay');
+        const q1Display = document.getElementById('q1Display');
+        const q2Display = document.getElementById('q2Display');
+        const linesDisplay = document.getElementById('linesDisplay');
 
-    <div class="info-panel">
-        <div class="info-item">
-            <div class="label">Configuration</div>
-            <div class="val" id="configDisplay">Dipole</div>
-        </div>
-        <div class="info-item">
-            <div class="label">Q₁</div>
-            <div class="val" id="q1Display">+5.0</div>
-        </div>
-        <div class="info-item">
-            <div class="label">Q₂</div>
-            <div class="val" id="q2Display">-5.0</div>
-        </div>
-        <div class="info-item">
-            <div class="label">Field Lines</div>
-            <div class="val" id="linesDisplay">32</div>
-        </div>
-    </div>
+        let originX, originY;
+        let scale = 1;
 
-    <div class="legend">
-        <span class="legend-item">
-            <span class="color-box" style="background:#2d7aff;"></span>
-            Field lines
-        </span>
-        <span class="legend-item">
-            <span class="color-box" style="background:#dc3545;"></span>
-            Equipotential
-        </span>
-        <span class="legend-item">
-            <span class="color-box" style="background:#ffc107; width:12px; height:12px; border-radius:50%;"></span>
-            Positive charge
-        </span>
-        <span class="legend-item">
-            <span class="color-box" style="background:#28a745; width:12px; height:12px; border-radius:50%;"></span>
-            Negative charge
-        </span>
-    </div>
+        // ============================================================
+        //  PHYSICS
+        // ============================================================
 
-    <div class="footer-note">PhysicsLab · PyScript + Matplotlib · 2026</div>
-</div>
+        function electricField(px, py) {
+            let ex = 0,
+                ey = 0;
+            const charges = [
+                [q1, -separation / 2, 0],
+                [q2, separation / 2, 0]
+            ];
+            for (const [q, cx, cy] of charges) {
+                const dx = px - cx,
+                    dy = py - cy;
+                const r2 = dx * dx + dy * dy;
+                if (r2 < 10) continue;
+                const r = sqrt(r2);
+                const e = q / r2;
+                ex += e * dx / r;
+                ey += e * dy / r;
+            }
+            return [ex, ey];
+        }
 
-<py-script>
-    from pyscript import display
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from pyodide.ffi import create_proxy
-    from js import document
+        function electricPotential(px, py) {
+            let v = 0;
+            const charges = [
+                [q1, -separation / 2, 0],
+                [q2, separation / 2, 0]
+            ];
+            for (const [q, cx, cy] of charges) {
+                const dx = px - cx,
+                    dy = py - cy;
+                const r = sqrt(dx * dx + dy * dy);
+                if (r < 1) return 100 * sign(q);
+                v += q / r;
+            }
+            return v;
+        }
 
-    # ----------------------------------------------------------------
-    #  PHYSICS: Electric field of point charges
-    # ----------------------------------------------------------------
+        function sign(x) { return x > 0 ? 1 : x < 0 ? -1 : 0; }
 
-    k = 1.0  # Coulomb constant (scaled for visualisation)
+        function traceFieldLine(startX, startY, steps = 300) {
+            const pts = [{ x: startX, y: startY }];
+            let x = startX,
+                y = startY;
+            for (let i = 0; i < steps; i++) {
+                const [ex, ey] = electricField(x, y);
+                const mag = sqrt(ex * ex + ey * ey);
+                if (mag < 0.01) break;
+                const step = 2.5;
+                x += step * ex / mag;
+                y += step * ey / mag;
+                if (x < -350 || x > 350 || y < -350 || y > 350) break;
+                // Check if too close to charges
+                let tooClose = false;
+                for (const [q, cx, cy] of [
+                        [q1, -separation / 2, 0],
+                        [q2, separation / 2, 0]
+                    ]) {
+                    if (dist(x, y, cx, cy) < 15) tooClose = true;
+                }
+                if (tooClose) break;
+                pts.push({ x, y });
+            }
+            return pts;
+        }
 
-    def electric_field(q, pos, x, y):
-        """Compute electric field at (x, y) due to charge q at position pos."""
-        dx = x - pos[0]
-        dy = y - pos[1]
-        r2 = dx*dx + dy*dy
-        if r2 < 0.01:
-            return 0, 0
-        r = np.sqrt(r2)
-        E = k * q / r2
-        return E * dx / r, E * dy / r
+        function computeEquipotentials() {
+            const levels = [];
+            const targets = [-4, -2, -1, -0.5, 0.5, 1, 2, 4];
+            // Find equipotential points by scanning
+            const pts = [];
+            const step = 6;
+            for (let x = -300; x <= 300; x += step) {
+                for (let y = -300; y <= 300; y += step) {
+                    const v = electricPotential(x, y);
+                    if (abs(v) < 10 && abs(v) > 0.1) {
+                        pts.push({ x, y, v });
+                    }
+                }
+            }
+            return pts;
+        }
 
-    def total_field(charges, x, y):
-        """Compute total electric field at (x, y) from all charges."""
-        Ex = np.zeros_like(x)
-        Ey = np.zeros_like(y)
-        for q, pos in charges:
-            ex, ey = electric_field(q, pos, x, y)
-            Ex += ex
-            Ey += ey
-        return Ex, Ey
+        // ============================================================
+        //  p5.js
+        // ============================================================
 
-    def total_potential(charges, x, y):
-        """Compute total electric potential at (x, y) from all charges."""
-        V = np.zeros_like(x)
-        for q, pos in charges:
-            dx = x - pos[0]
-            dy = y - pos[1]
-            r = np.sqrt(dx*dx + dy*dy)
-            # Avoid division by zero: set minimum distance
-            r = np.maximum(r, 0.1)
-            V += k * q / r
-        return V
+        function setup() {
+            pixelDensity(1);
+            const canvas = createCanvas(800, 700);
+            canvas.parent('canvas-container');
+            originX = width / 2;
+            originY = height / 2;
+            computeFieldLines();
 
-    # ----------------------------------------------------------------
-    #  FIELD LINE TRACING
-    # ----------------------------------------------------------------
+            q1Slider.addEventListener('input', function() {
+                q1 = parseFloat(this.value);
+                q1Value.textContent = (q1 >= 0 ? '+' : '') + q1.toFixed(1);
+                computeFieldLines();
+                updateInfo();
+            });
+            q2Slider.addEventListener('input', function() {
+                q2 = parseFloat(this.value);
+                q2Value.textContent = (q2 >= 0 ? '+' : '') + q2.toFixed(1);
+                computeFieldLines();
+                updateInfo();
+            });
+            sepSlider.addEventListener('input', function() {
+                separation = parseFloat(this.value);
+                sepValue.textContent = separation;
+                computeFieldLines();
+                updateInfo();
+            });
+            resetBtn.addEventListener('click', function() {
+                q1Slider.value = '5';
+                q2Slider.value = '-5';
+                sepSlider.value = '100';
+                q1 = 5;
+                q2 = -5;
+                separation = 100;
+                q1Value.textContent = '+5.0';
+                q2Value.textContent = '-5.0';
+                sepValue.textContent = '100';
+                computeFieldLines();
+                updateInfo();
+            });
+        }
 
-    def trace_field_line(charges, start_x, start_y, step=0.05, max_steps=500):
-        """Trace a single field line from a starting point."""
-        x, y = start_x, start_y
-        points_x = [x]
-        points_y = [y]
+        function computeFieldLines() {
+            fieldLines = [];
+            const charges = [
+                [q1, -separation / 2, 0],
+                [q2, separation / 2, 0]
+            ];
+            const nLines = 24;
+            for (const [q, cx, cy] of charges) {
+                if (q > 0) {
+                    for (let i = 0; i < nLines; i++) {
+                        const angle = (TWO_PI / nLines) * i;
+                        const r = 12;
+                        const sx = cx + r * cos(angle);
+                        const sy = cy + r * sin(angle);
+                        const line = traceFieldLine(sx, sy);
+                        if (line.length > 5) fieldLines.push(line);
+                    }
+                }
+            }
+            linesDisplay.textContent = fieldLines.length;
+        }
 
-        for _ in range(max_steps):
-            Ex, Ey = total_field(charges, x, y)
-            E_mag = np.sqrt(Ex*Ex + Ey*Ey)
-            if E_mag < 1e-8:
-                break
-            dx = step * Ex / E_mag
-            dy = step * Ey / E_mag
-            x += dx
-            y += dy
-            points_x.append(x)
-            points_y.append(y)
+        function updateInfo() {
+            const config = (q1 > 0 && q2 < 0) ? 'Dipole' :
+                (q1 < 0 && q2 > 0) ? 'Dipole (rev)' :
+                (q1 > 0 && q2 > 0) ? 'Same sign' :
+                (q1 < 0 && q2 < 0) ? 'Same sign' :
+                (q1 === 0 || q2 === 0) ? 'Single charge' : 'Custom';
+            configDisplay.textContent = config;
+            q1Display.textContent = (q1 >= 0 ? '+' : '') + q1.toFixed(1);
+            q2Display.textContent = (q2 >= 0 ? '+' : '') + q2.toFixed(1);
+        }
 
-            for q, pos in charges:
-                if np.sqrt((x - pos[0])**2 + (y - pos[1])**2) < 0.2:
-                    return np.array(points_x), np.array(points_y)
+        function draw() {
+            background('#fafcff');
 
-            if abs(x) > 8 or abs(y) > 8:
-                break
+            // Grid
+            push();
+            stroke(220, 225, 235);
+            strokeWeight(0.5);
+            for (let x = -350; x <= 350; x += 50) {
+                line(originX + x, 0, originX + x, height);
+            }
+            for (let y = -350; y <= 350; y += 50) {
+                line(0, originY + y, width, originY + y);
+            }
+            pop();
 
-        return np.array(points_x), np.array(points_y)
+            // Equipotential points (contour approximation)
+            const eqPts = computeEquipotentials();
+            push();
+            noFill();
+            stroke(220, 60, 80, 100);
+            strokeWeight(0.8);
+            for (const pt of eqPts) {
+                if (abs(pt.v) < 0.8) {
+                    ellipse(originX + pt.x, originY + pt.y, 2, 2);
+                }
+            }
+            pop();
 
-    def get_starting_points(charges, n_lines=24):
-        """Generate starting points around positive charges."""
-        start_points = []
-        for q, pos in charges:
-            if q > 0:
-                for i in range(n_lines):
-                    angle = 2 * np.pi * i / n_lines
-                    r = 0.3
-                    start_points.append((pos[0] + r * np.cos(angle),
-                                         pos[1] + r * np.sin(angle)))
-        return start_points
+            // Field lines
+            push();
+            noFill();
+            for (const line of fieldLines) {
+                const alpha = 180;
+                stroke(45, 120, 255, alpha);
+                strokeWeight(1.2);
+                beginShape();
+                for (const pt of line) {
+                    vertex(originX + pt.x, originY + pt.y);
+                }
+                endShape();
+            }
+            pop();
 
-    # ----------------------------------------------------------------
-    #  PLOTTING
-    # ----------------------------------------------------------------
+            // Charges
+            const charges = [
+                [q1, -separation / 2, 0],
+                [q2, separation / 2, 0]
+            ];
+            for (const [q, cx, cy] of charges) {
+                const px = originX + cx,
+                    py = originY + cy;
+                const size = 16 + abs(q) * 1.5;
+                push();
+                noStroke();
+                if (q > 0) {
+                    fill(255, 193, 7);
+                } else if (q < 0) {
+                    fill(40, 167, 69);
+                } else {
+                    fill(200, 200, 200);
+                }
+                ellipse(px, py, size, size);
+                fill(40, 50, 70);
+                textSize(14);
+                textAlign(CENTER, CENTER);
+                text(q > 0 ? '+' : q < 0 ? '−' : '0', px, py + 1);
+                pop();
+            }
 
-    def plot_electric_field(q1, q2, separation):
-        """Main plotting function."""
-        pos1 = (-separation/2, 0)
-        pos2 = (separation/2, 0)
-        charges = [(q1, pos1), (q2, pos2)]
+            // Labels
+            push();
+            fill(40, 50, 70);
+            noStroke();
+            textSize(13);
+            textAlign(LEFT, TOP);
+            text('Q₁', originX - separation / 2 + 16, originY - 20);
+            text('Q₂', originX + separation / 2 + 16, originY - 20);
+            pop();
+        }
 
-        fig, ax = plt.subplots(figsize=(9, 8))
-
-        # Grid for potential
-        grid_size = 200
-        x = np.linspace(-8, 8, grid_size)
-        y = np.linspace(-8, 8, grid_size)
-        X, Y = np.meshgrid(x, y)
-
-        # Compute potential - safe version
-        V = total_potential(charges, X, Y)
-
-        # Replace inf with finite values
-        V = np.nan_to_num(V, nan=0.0, posinf=15.0, neginf=-15.0)
-
-        # Equipotential contours
-        levels = np.linspace(-12, 12, 20)
-        ax.contour(X, Y, V, levels=levels,
-                   colors='#dc3545', alpha=0.5, linewidths=0.8)
-
-        # Field lines
-        start_points = get_starting_points(charges, n_lines=24)
-        for sx, sy in start_points:
-            line_x, line_y = trace_field_line(charges, sx, sy, step=0.05, max_steps=400)
-            ax.plot(line_x, line_y, color='#2d7aff', linewidth=1.2, alpha=0.7)
-
-        # Plot charges
-        max_q = max(abs(q1), abs(q2), 1.0)
-        for q, pos in charges:
-            if q > 0:
-                color = '#ffc107'
-                size = 300 * (q / max_q)
-            else:
-                color = '#28a745'
-                size = 300 * (abs(q) / max_q)
-            ax.scatter(pos[0], pos[1], s=max(size, 80), color=color,
-                       edgecolor='black', linewidth=1.5, zorder=10)
-            label = '+' if q > 0 else '−'
-            ax.text(pos[0], pos[1], label, color='white',
-                    fontsize=14, fontweight='bold', ha='center', va='center', zorder=11)
-
-        ax.set_xlim(-8, 8)
-        ax.set_ylim(-8, 8)
-        ax.set_aspect('equal')
-        ax.grid(True, alpha=0.2, linestyle='--')
-        ax.set_xlabel('x', fontsize=12)
-        ax.set_ylabel('y', fontsize=12)
-
-        # Title
-        if q1 > 0 and q2 < 0:
-            config = 'Dipole'
-            title = f'Electric Dipole: Q₁ = +{q1:.1f}, Q₂ = {q2:.1f}'
-        elif q1 < 0 and q2 > 0:
-            config = 'Dipole (reversed)'
-            title = f'Electric Dipole: Q₁ = {q1:.1f}, Q₂ = +{q2:.1f}'
-        elif q1 == 0 and q2 != 0:
-            config = 'Single charge'
-            title = f'Single Charge: Q₂ = {q2:.1f}'
-        elif q2 == 0 and q1 != 0:
-            config = 'Single charge'
-            title = f'Single Charge: Q₁ = {q1:.1f}'
-        elif q1 > 0 and q2 > 0:
-            config = 'Same sign'
-            title = f'Repulsive: Q₁ = +{q1:.1f}, Q₂ = +{q2:.1f}'
-        elif q1 < 0 and q2 < 0:
-            config = 'Same sign'
-            title = f'Repulsive: Q₁ = {q1:.1f}, Q₂ = {q2:.1f}'
-        else:
-            config = 'Custom'
-            title = f'Electric Field: Q₁ = {q1:.1f}, Q₂ = {q2:.1f}'
-
-        ax.set_title(title, fontsize=14)
-
-        # Update info panel
-        doc = document
-        doc.getElementById('configDisplay').textContent = config
-        doc.getElementById('q1Display').textContent = f'{q1:+.1f}'
-        doc.getElementById('q2Display').textContent = f'{q2:+.1f}'
-        doc.getElementById('linesDisplay').textContent = str(len(start_points))
-
-        return fig
-
-    # ----------------------------------------------------------------
-    #  UI BINDINGS
-    # ----------------------------------------------------------------
-
-    q1_slider = document.getElementById('q1Slider')
-    q2_slider = document.getElementById('q2Slider')
-    sep_slider = document.getElementById('sepSlider')
-
-    def update_plot(event=None):
-        q1 = float(q1_slider.value)
-        q2 = float(q2_slider.value)
-        sep = float(sep_slider.value)
-
-        container = document.getElementById('plot-container')
-        container.innerHTML = '<div class="loading-text">Rendering...</div>'
-
-        try:
-            fig = plot_electric_field(q1, q2, sep)
-            display(fig, target='plot-container')
-        except Exception as e:
-            container.innerHTML = f'<div style="color:red;">Error: {str(e)}</div>'
-            import traceback
-            traceback.print_exc()
-
-    def reset_dipole(event):
-        q1_slider.value = '5'
-        q2_slider.value = '-5'
-        sep_slider.value = '3'
-        document.getElementById('q1Value').textContent = '+5.0'
-        document.getElementById('q2Value').textContent = '-5.0'
-        document.getElementById('sepValue').textContent = '3.0'
-        update_plot()
-
-    def sync_q1(event):
-        val = float(event.target.value)
-        document.getElementById('q1Value').textContent = f'{val:+.1f}'
-
-    def sync_q2(event):
-        val = float(event.target.value)
-        document.getElementById('q2Value').textContent = f'{val:+.1f}'
-
-    def sync_sep(event):
-        document.getElementById('sepValue').textContent = event.target.value
-
-    q1_slider.addEventListener('input', create_proxy(sync_q1))
-    q2_slider.addEventListener('input', create_proxy(sync_q2))
-    sep_slider.addEventListener('input', create_proxy(sync_sep))
-
-    update_btn = document.getElementById('updateBtn')
-    update_btn.addEventListener('click', create_proxy(update_plot))
-
-    reset_btn = document.getElementById('resetBtn')
-    reset_btn.addEventListener('click', create_proxy(reset_dipole))
-
-    update_plot()
-</py-script>
+        function windowResized() {}
+    </script>
 
 </body>
 </html>
