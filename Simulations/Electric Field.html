@@ -359,31 +359,44 @@
             return v;
         }
 
-        function traceFieldLine(startX, startY, steps = 350) {
+        function traceFieldLine(startX, startY, steps = 500, stepSize = 1.8) {
             const pts = [{ x: startX, y: startY }];
             let x = startX,
                 y = startY;
             for (let i = 0; i < steps; i++) {
                 const [ex, ey] = electricField(x, y);
                 const mag = sqrt(ex * ex + ey * ey);
-                if (mag < 0.01) break;
-                const stepSize = 2.8;
-                x += stepSize * ex / mag;
-                y += stepSize * ey / mag;
-                if (x < -380 || x > 380 || y < -380 || y > 380) break;
-                let tooClose = false;
-                for (const [q, cx, cy] of [
-                        [q1, -separation / 2, 0],
-                        [q2, separation / 2, 0]
-                    ]) {
-                    if (dist(x, y, cx, cy) < 14) tooClose = true;
+                if (mag < 0.001) break;
+       
+                let currentStep = stepSize;
+                const charges = [
+                    [q1, -separation / 2, 0],
+                    [q2, separation / 2, 0]
+                ];
+                for (const [q, cx, cy] of charges) {
+                    const d = dist(x, y, cx, cy);
+                    if (d < 30) currentStep = min(currentStep, d * 0.08);
                 }
-                if (tooClose) break;
+                currentStep = max(currentStep, 0.3);
+                x += currentStep * ex / mag;
+                y += currentStep * ey / mag;
+                if (x < -380 || x > 380 || y < -380 || y > 380) break;
+        
+                let reachedCharge = false;
+                for (const [q, cx, cy] of charges) {
+                    if (dist(x, y, cx, cy) < 8) {
+                        reachedCharge = true;
+                        break;
+                    }
+                }
+                if (reachedCharge) break;
                 pts.push({ x, y });
+       
+                if (pts.length > steps) break;
             }
             return pts;
         }
-
+        
         function computeEquipotentialPoints() {
             const pts = [];
             const step = 5;
@@ -404,23 +417,54 @@
                 [q1, -separation / 2, 0],
                 [q2, separation / 2, 0]
             ];
-            const nLines = 28;
+            const nLines = 32;
+
+         
             for (const [q, cx, cy] of charges) {
-                if (q > 0) {
+                if (q > 0.1) {
                     for (let i = 0; i < nLines; i++) {
                         const angle = (TWO_PI / nLines) * i;
-                        const r = 13;
+                        const r = 15;
                         const sx = cx + r * cos(angle);
                         const sy = cy + r * sin(angle);
                         const line = traceFieldLine(sx, sy);
-                        if (line.length > 8) fieldLines.push(line);
+                        if (line.length > 5) fieldLines.push(line);
                     }
                 }
             }
+
+            const hasPositive = charges.some(([q]) => q > 0.1);
+            if (!hasPositive) {
+               
+                const nBoundaryPoints = 24;
+                for (let i = 0; i < nBoundaryPoints; i++) {
+                    const angle = (TWO_PI / nBoundaryPoints) * i;
+                    const radius = 350;
+                    const sx = radius * cos(angle);
+                    const sy = radius * sin(angle);
+                    const line = traceFieldLine(sx, sy);
+                    if (line.length > 5) fieldLines.push(line);
+                }
+            }
+
+            
+            const positiveCharges = charges.filter(([q]) => q > 0.1);
+            if (positiveCharges.length >= 2) {
+                
+                for (let i = 0; i < 16; i++) {
+                    const angle = (TWO_PI / 16) * i + 0.1;
+                    const radius = 350;
+                    const sx = radius * cos(angle);
+                    const sy = radius * sin(angle);
+                    const line = traceFieldLine(sx, sy);
+                    if (line.length > 5) fieldLines.push(line);
+                }
+            }
+
             linesDisplay.textContent = fieldLines.length;
             needRedraw = false;
         }
-
+        
         function updateInfo() {
             const config = (q1 > 0 && q2 < 0) ? 'Dipole' :
                 (q1 < 0 && q2 > 0) ? 'Dipole (rev)' :
