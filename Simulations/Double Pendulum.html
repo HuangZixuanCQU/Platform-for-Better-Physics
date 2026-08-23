@@ -194,8 +194,8 @@
                 <span class="value" id="m2Value">15</span>
             </div>
             <div class="control-group">
-                <label>⏱</label>
-                <input type="range" id="speedSlider" min="0.2" max="3.0" value="1.0" step="0.1">
+                <label></label>
+                <input type="range" id="speedSlider" min="0.2" max="5.0" value="3.0" step="0.1">
                 <span class="value" id="speedValue">1.0x</span>
             </div>
             <div class="btn-group">
@@ -210,7 +210,7 @@
 
     <script>
         // ============================================================
-        //  DOUBLE PENDULUM PHYSICS (p5.js) - 永久轨迹
+        //  DOUBLE PENDULUM PHYSICS (p5.js)
         // ============================================================
 
         let L1 = 150,
@@ -226,7 +226,7 @@
             omega2 = 0;
 
         let x1, y1, x2, y2;
-        // 永久轨迹：不限制长度，永不删除
+    
         let trail1 = [],
             trail2 = [];
         let paused = false;
@@ -276,10 +276,10 @@
 
         function setup() {
             pixelDensity(1);
-            const canvas = createCanvas(800, 700); // 从 600 增加到 700
+            const canvas = createCanvas(800, 700);
             canvas.parent('canvas-container');
             originX = width / 2;
-            originY = 140; // 固定点从 80 下移到 140
+            originY = 140; 
             resetPendulum();
 
             L1Slider.addEventListener('input', function() {
