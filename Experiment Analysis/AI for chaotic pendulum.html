@@ -321,10 +321,10 @@
                     <!-- p5.js canvas will be placed here -->
                 </div>
                 <div class="controls">
-                    <button class="btn btn-primary" id="startBtn">Start Camera</button>
-                    <button class="btn btn-danger" id="stopBtn">Stop</button>
-                    <button class="btn btn-secondary" id="resetDataBtn">Reset Data</button>
-                    <button class="btn btn-success" id="exportBtn">Export CSV</button>
+                    <button class="btn btn-primary" id="startBtn" onclick="window.startCamera()">Start Camera</button>
+                    <button class="btn btn-danger" id="stopBtn" onclick="window.stopCamera()">Stop</button>
+                    <button class="btn btn-secondary" id="resetDataBtn" onclick="resetData()">Reset Data</button>
+                    <button class="btn btn-success" id="exportBtn" onclick="exportCSV()">Export CSV</button>
                 </div>
                 <div class="status-bar">
                     <span class="stat">
@@ -1117,17 +1117,22 @@
         log('Camera stopped', 'info');
     }
 
+    window.startCamera = startCamera;
+    window.stopCamera = stopCamera; 
+    window.resetData = resetData;
+    window.exportCSV = exportCSV;    
+
     // ============================================================
     //  EVENT BINDINGS
     // ============================================================
 
-    startBtn.addEventListener('click', startCamera);
-    stopBtn.addEventListener('click', stopCamera);
-    resetDataBtn.addEventListener('click', resetData);
-    exportBtn.addEventListener('click', exportCSV);
+    // startBtn.addEventListener('click', startCamera);
+    // stopBtn.addEventListener('click', stopCamera);
+    // resetDataBtn.addEventListener('click', resetData);
+    // exportBtn.addEventListener('click', exportCSV);
 
-    // Initial state
-    stopBtn.disabled = true;
+    // // Initial state
+    // stopBtn.disabled = true;
 
     // Initialize phase plot
     setTimeout(() => {
