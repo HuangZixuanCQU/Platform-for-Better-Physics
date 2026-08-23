@@ -65,6 +65,23 @@
             border-bottom-color: #2d7aff;
         }
 
+        /* Language Transform Button Style */
+        .lang-btn {
+            background: #2d7aff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            font-family: inherit;
+        }
+        .lang-btn:hover {
+            background: #1a5fd0;
+        }
+
         /* Hero section */
         .hero {
             background: linear-gradient(145deg, #ffffff, #f2f7fe);
@@ -194,9 +211,11 @@
 <div class="top-bar">
     <div class="logo">Physics<span>Lab</span></div>
     <div class="nav-links">
-        <a href="index.html" class="active">Home</a>
-        <a href="share.html">Resources</a>
-        <a href="simulations.html">Simulations</a>
+        <a href="index.html" class="active" data-key="nav_home">Home</a>
+        <a href="share.html" data-key="nav_resources">Resources</a>
+        <a href="simulations.html" data-key="nav_simulations">Simulations</a>
+        <! Language changing button>
+        <button id="langToggle" class="lang-btn">中文</button>
     </div>
 </div>
 
@@ -231,6 +250,93 @@
 <div class="footer-note">
     PhysicsLab · built with GitHub Pages · 2026
 </div>
+
+<!-- ============================================================ -->
+<!--  LANGUAGE SUPPORT JAVASCRIPT                                  -->
+<!-- ============================================================ -->
+<script>
+    // ============================================================
+    //  LANGUAGE SUPPORT (中英双语切换)
+    // ============================================================
+
+    const translations = {
+        zh: {
+            // 导航栏
+            nav_home: '首页',
+            nav_resources: '资料库',
+            nav_simulations: '仿真',
+            // Hero
+            hero_title: '欢迎来到 PhysicsLab',
+            hero_sub: '交互式物理学习平台',
+            hero_desc: '为物理专业学生打造的平台 — 包含交互式仿真和丰富的学习资料。',
+            hero_btn: '浏览资料 →',
+            // 卡片
+            card1_title: '学习资料',
+            card1_desc: 'PDF、讲义、LaTeX 草稿和 Markdown 摘要 — 按主题分类，方便查阅。',
+            card1_btn: '进入资料库 →',
+            card2_title: '交互式仿真',
+            card2_desc: '从经典力学到电磁学的物理仿真 — 直接在浏览器中运行。',
+            card2_btn: '探索仿真 →',
+            // 页脚
+            footer: 'PhysicsLab · 基于 GitHub Pages 构建 · 2026'
+        },
+        en: {
+            // 导航栏
+            nav_home: 'Home',
+            nav_resources: 'Resources',
+            nav_simulations: 'Simulations',
+            // Hero
+            hero_title: 'Welcome to PhysicsLab',
+            hero_sub: 'Interactive Physics Learning Platform',
+            hero_desc: 'A curated platform for physics students — explore interactive simulations and access learning resources.',
+            hero_btn: 'Browse Resources →',
+            // 卡片
+            card1_title: 'Learning Resources',
+            card1_desc: 'PDFs, lecture notes, LaTeX drafts, and markdown summaries — organised by topic for easy access.',
+            card1_btn: 'Go to Library →',
+            card2_title: 'Interactive Simulations',
+            card2_desc: 'Physics simulations from classical mechanics to electromagnetism — run in your browser.',
+            card2_btn: 'Explore Simulations →',
+            // 页脚
+            footer: 'PhysicsLab · built with GitHub Pages · 2026'
+        }
+    };
+
+    let currentLang = 'en';
+
+    function switchLanguage(lang) {
+        currentLang = lang;
+        const t = translations[lang];
+
+        document.querySelectorAll('[data-key]').forEach(el => {
+            const key = el.dataset.key;
+            if (t[key] !== undefined) {
+                el.textContent = t[key];
+            }
+        });
+
+        const toggleBtn = document.getElementById('langToggle');
+        if (toggleBtn) {
+            toggleBtn.textContent = lang === 'zh' ? 'English' : '中文';
+        }
+
+        localStorage.setItem('preferredLang', lang);
+        document.documentElement.lang = lang;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('langToggle');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                const newLang = currentLang === 'zh' ? 'en' : 'zh';
+                switchLanguage(newLang);
+            });
+        }
+
+        const savedLang = localStorage.getItem('preferredLang') || 'en';
+        switchLanguage(savedLang);
+    });
+</script>    
 
 </body>
 </html>
