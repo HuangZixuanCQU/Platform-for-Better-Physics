@@ -747,6 +747,14 @@
         async function inferenceLoop() {
             if (!isRunning || !video || !model) return;
 
+            // 在 inferenceLoop 函数中，model.predict(video) 这行之前插入
+            if (ctx && video) {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'red';
+                ctx.font = '20px Arial';
+                ctx.fillText('摄像头已连接', 20, 50);
+            }
+
             try {
                 const startTime = performance.now();
 
