@@ -305,7 +305,7 @@
                 <a href="../index.html">Home</a>
                 <a href="../share.html">Resources</a>
                 <a href="../simulations.html">Simulations</a>
-                <a href="../experiment.html" class="active experiment">Experiment</a>
+                <a href="../AI%20for%20chaotic%20pendulum.html" class="active experiment">AI for Experiment</a>
             </div>
         </div>
 
@@ -1017,4 +1017,138 @@
 
             lleDisplay.textContent = '--';
             lleBadge.textContent = 'LLE: --';
-            chaosStatus.text
+   
+            chaosStatus.textContent = '--';
+            chaosStatus.className = 'value';
+        }
+
+    // ============================================================
+    //  CAMERA CONTROL
+    // ============================================================
+
+    async function startCamera() {
+        try {
+            log('Starting camera...', 'info');
+
+            // Create video element
+            video = document.createElement('video');
+            video.width = 640;
+            video.height = 480;
+            video.autoplay = true;
+            video.playsInline = true;
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user', width: 640, height: 480 }
+            });
+            video.srcObject = stream;
+            await video.play();
+
+            // Create canvas for drawing
+            canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            canvas.style.width = '100%';
+            canvas.style.height = 'auto';
+            ctx = canvas.getContext('2d');
+
+            // Add roundRect polyfill for older browsers
+            if (!CanvasRenderingContext2D.prototype.roundRect) {
+                CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                    this.moveTo(x + r, y);
+                    this.lineTo(x + w - r, y);
+                    this.quadraticCurveTo(x + w, y, x + w, y + r);
+                    this.lineTo(x + w, y + h - r);
+                    this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                    this.lineTo(x + r, y + h);
+                    this.quadraticCurveTo(x, y + h, x, y + h - r);
+                    this.lineTo(x, y + r);
+                    this.quadraticCurveTo(x, y, x + r, y);
+                };
+            }
+
+            cameraContainer.innerHTML = '';
+            cameraContainer.appendChild(canvas);
+
+            log('Loading YOLO model...', 'info');
+            model = await YOLO.load('/Models/yolov8n.onnx');  
+            log('YOLO model loaded successfully!', 'info');
+
+            // Start inference
+            isRunning = true;
+            statusDot.className = 'status-dot on';
+            statusText.textContent = 'Running';
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+
+            // Set pivot point (center of rotation)
+            pivotPoint = { x: 320, y: 80 };
+
+            log('Camera started. Detection running.', 'info');
+            inferenceLoop();
+
+        } catch (err) {
+            log('Failed to start: ' + err.message, 'error');
+            console.error(err);
+            statusText.textContent = 'Error: ' + err.message;
+        }
+    }
+
+    function stopCamera() {
+        isRunning = false;
+        if (video && video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+        }
+        statusDot.className = 'status-dot off';
+        statusText.textContent = 'Stopped';
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+
+        if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#64748b';
+            ctx.font = '18px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Camera stopped', canvas.width / 2, canvas.height / 2);
+        }
+
+        log('Camera stopped', 'info');
+    }
+
+    // ============================================================
+    //  EVENT BINDINGS
+    // ============================================================
+
+    startBtn.addEventListener('click', startCamera);
+    stopBtn.addEventListener('click', stopCamera);
+    resetDataBtn.addEventListener('click', resetData);
+    exportBtn.addEventListener('click', exportCSV);
+
+    // Initial state
+    stopBtn.disabled = true;
+
+    // Initialize phase plot
+    setTimeout(() => {
+        updatePhasePlot();
+    }, 100);
+
+    log('AI for Chaotic Pendulum initialized', 'info');
+    log('Place your YOLO model at /Models/yolov8n.onnx', 'info');
+    log('Click "Start Camera" to begin', 'info');
+
+    // ============================================================
+    //  KEYBOARD SHORTCUTS
+    // ============================================================
+    document.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Space') {
+            e.preventDefault();
+            if (isRunning) stopCamera();
+            else startCamera();
+        }
+        if (e.key === 'r' || e.key === 'R') resetData();
+        if (e.key === 'e' || e.key === 'E') exportCSV();
+    });
+
+    console.log('Keyboard shortcuts: Space=toggle camera, R=reset, E=export');
