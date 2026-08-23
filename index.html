@@ -15,12 +15,7 @@
             max-width: 1100px;
             margin: 0 auto;
             padding: 30px 24px 60px;
-            background-image: url('../Images/background-1.png');
-            background-size: cover;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-            background-color: rgba(255,255,255,0.85);
-            background-blend-mode: overlay;
+            background: #f8faff;
             color: #1a2332;
             line-height: 1.6;
         }
@@ -47,6 +42,7 @@
             display: flex;
             gap: 28px;
             font-size: 15px;
+            align-items: center;
         }
         .top-bar .nav-links a {
             color: #2c3e50;
@@ -65,7 +61,7 @@
             border-bottom-color: #2d7aff;
         }
 
-        /* Language Transform Button Style */
+        /* Language toggle button */
         .lang-btn {
             background: #2d7aff;
             color: white;
@@ -214,40 +210,39 @@
         <a href="index.html" class="active" data-key="nav_home">Home</a>
         <a href="share.html" data-key="nav_resources">Resources</a>
         <a href="simulations.html" data-key="nav_simulations">Simulations</a>
-        <! Language changing button>
         <button id="langToggle" class="lang-btn">中文</button>
     </div>
 </div>
 
 <!-- ===== Hero Section ===== -->
 <div class="hero">
-    <h1>Welcome to <span>PhysicsLab</span></h1>
-    <div class="sub">Interactive simulations · Open learning resources</div>
-    <p>
+    <h1 data-key="hero_title">Welcome to <span>PhysicsLab</span></h1>
+    <div class="sub" data-key="hero_sub">Interactive simulations · Open learning resources</div>
+    <p data-key="hero_desc">
         A curated platform for physics students — explore interactive simulations
         and access a library of lecture notes, problem sets, and reference materials.
     </p>
-    <a class="quick-link" href="share.html">Browse Resources →</a>
+    <a class="quick-link" href="share.html" data-key="hero_btn">Browse Resources →</a>
 </div>
 
 <!-- ===== Feature Cards ===== -->
 <div class="feature-grid">
     <div class="feature-card">
         <div class="icon">LIB</div>
-        <h3>Learning Resources</h3>
-        <p>PDFs, lecture notes, LaTeX drafts, and markdown summaries — organised by topic for easy access.</p>
-        <a href="share.html">Go to Library →</a>
+        <h3 data-key="card1_title">Learning Resources</h3>
+        <p data-key="card1_desc">PDFs, lecture notes, LaTeX drafts, and markdown summaries — organised by topic for easy access.</p>
+        <a href="share.html" data-key="card1_btn">Go to Library →</a>
     </div>
     <div class="feature-card">
         <div class="icon">SIM</div>
-        <h3>Simulations</h3>
-        <p>Interactive physics simulations — from classical mechanics to electromagnetism. Run in your browser.</p>
-        <a href="simulations.html">Explore Simulations →</a>
+        <h3 data-key="card2_title">Simulations</h3>
+        <p data-key="card2_desc">Interactive physics simulations — from classical mechanics to electromagnetism. Run in your browser.</p>
+        <a href="simulations.html" data-key="card2_btn">Explore Simulations →</a>
     </div>
 </div>
 
 <!-- ===== Footer ===== -->
-<div class="footer-note">
+<div class="footer-note" data-key="footer">
     PhysicsLab · built with GitHub Pages · 2026
 </div>
 
@@ -267,7 +262,7 @@
             nav_simulations: '仿真',
             // Hero
             hero_title: '欢迎来到 PhysicsLab',
-            hero_sub: '交互式物理学习平台',
+            hero_sub: '交互式仿真 · 开放学习资源',
             hero_desc: '为物理专业学生打造的平台 — 包含交互式仿真和丰富的学习资料。',
             hero_btn: '浏览资料 →',
             // 卡片
@@ -287,7 +282,7 @@
             nav_simulations: 'Simulations',
             // Hero
             hero_title: 'Welcome to PhysicsLab',
-            hero_sub: 'Interactive Physics Learning Platform',
+            hero_sub: 'Interactive simulations · Open learning resources',
             hero_desc: 'A curated platform for physics students — explore interactive simulations and access learning resources.',
             hero_btn: 'Browse Resources →',
             // 卡片
@@ -336,7 +331,7 @@
         const savedLang = localStorage.getItem('preferredLang') || 'en';
         switchLanguage(savedLang);
     });
-</script>    
+</script>
 
 </body>
 </html>
