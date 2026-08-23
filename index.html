@@ -19,7 +19,6 @@
             color: #1a2332;
             line-height: 1.6;
         }
-        /* Top navigation bar */
         .top-bar {
             display: flex;
             flex-wrap: wrap;
@@ -60,8 +59,6 @@
             color: #1a5fd0;
             border-bottom-color: #2d7aff;
         }
-
-        /* Language toggle button */
         .lang-btn {
             background: #2d7aff;
             color: white;
@@ -78,7 +75,6 @@
             background: #1a5fd0;
         }
 
-        /* Hero section */
         .hero {
             background: linear-gradient(145deg, #ffffff, #f2f7fe);
             border-radius: 24px;
@@ -121,7 +117,6 @@
             background: #1a5fd0;
         }
 
-        /* Feature cards grid */
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -168,7 +163,6 @@
             text-decoration: underline;
         }
 
-        /* Footer */
         .footer-note {
             margin-top: 48px;
             padding-top: 16px;
@@ -178,7 +172,6 @@
             text-align: center;
         }
 
-        /* Responsive */
         @media (max-width: 640px) {
             .top-bar {
                 flex-direction: column;
@@ -203,135 +196,112 @@
 </head>
 <body>
 
-<!-- ===== Navigation Bar ===== -->
-<div class="top-bar">
-    <div class="logo">Physics<span>Lab</span></div>
-    <div class="nav-links">
-        <a href="index.html" class="active" data-key="nav_home">Home</a>
-        <a href="share.html" data-key="nav_resources">Resources</a>
-        <a href="simulations.html" data-key="nav_simulations">Simulations</a>
-        <button id="langToggle" class="lang-btn">中文</button>
+    <div class="top-bar">
+        <div class="logo">Physics<span>Lab</span></div>
+        <div class="nav-links">
+            <a href="index.html" class="active" data-key="nav_home">Home</a>
+            <a href="share.html" data-key="nav_resources">Resources</a>
+            <a href="simulations.html" data-key="nav_simulations">Simulations</a>
+            <button id="langToggle" class="lang-btn">中文</button>
+        </div>
     </div>
-</div>
 
-<!-- ===== Hero Section ===== -->
-<div class="hero">
-    <h1 data-key="hero_title">Welcome to <span>PhysicsLab</span></h1>
-    <div class="sub" data-key="hero_sub">Interactive simulations · Open learning resources</div>
-    <p data-key="hero_desc">
-        A curated platform for physics students — explore interactive simulations
-        and access a library of lecture notes, problem sets, and reference materials.
-    </p>
-    <a class="quick-link" href="share.html" data-key="hero_btn">Browse Resources →</a>
-</div>
-
-<!-- ===== Feature Cards ===== -->
-<div class="feature-grid">
-    <div class="feature-card">
-        <div class="icon">LIB</div>
-        <h3 data-key="card1_title">Learning Resources</h3>
-        <p data-key="card1_desc">PDFs, lecture notes, LaTeX drafts, and markdown summaries — organised by topic for easy access.</p>
-        <a href="share.html" data-key="card1_btn">Go to Library →</a>
+    <div class="hero">
+        <h1 data-key="hero_title">Welcome to <span>PhysicsLab</span></h1>
+        <div class="sub" data-key="hero_sub">Interactive simulations · Open learning resources</div>
+        <p data-key="hero_desc">
+            A curated platform for physics students — explore interactive simulations
+            and access a library of lecture notes, problem sets, and reference materials.
+        </p>
+        <a class="quick-link" href="share.html" data-key="hero_btn">Browse Resources →</a>
     </div>
-    <div class="feature-card">
-        <div class="icon">SIM</div>
-        <h3 data-key="card2_title">Simulations</h3>
-        <p data-key="card2_desc">Interactive physics simulations — from classical mechanics to electromagnetism. Run in your browser.</p>
-        <a href="simulations.html" data-key="card2_btn">Explore Simulations →</a>
+
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="icon">LIB</div>
+            <h3 data-key="card1_title">Learning Resources</h3>
+            <p data-key="card1_desc">PDFs, lecture notes, LaTeX drafts, and markdown summaries — organised by topic for easy access.</p>
+            <a href="share.html" data-key="card1_btn">Go to Library →</a>
+        </div>
+        <div class="feature-card">
+            <div class="icon">SIM</div>
+            <h3 data-key="card2_title">Simulations</h3>
+            <p data-key="card2_desc">Interactive physics simulations — from classical mechanics to electromagnetism. Run in your browser.</p>
+            <a href="simulations.html" data-key="card2_btn">Explore Simulations →</a>
+        </div>
     </div>
-</div>
 
-<!-- ===== Footer ===== -->
-<div class="footer-note" data-key="footer">
-    PhysicsLab · built with GitHub Pages · 2026
-</div>
+    <div class="footer-note" data-key="footer">
+        PhysicsLab · built with GitHub Pages · 2026
+    </div>
 
-<!-- ============================================================ -->
-<!--  LANGUAGE SUPPORT JAVASCRIPT                                  -->
-<!-- ============================================================ -->
-<script>
-    // ============================================================
-    //  LANGUAGE SUPPORT (中英双语切换)
-    // ============================================================
-
-    const translations = {
-        zh: {
-            // 导航栏
-            nav_home: '首页',
-            nav_resources: '资料库',
-            nav_simulations: '仿真',
-            // Hero
-            hero_title: '欢迎来到 PhysicsLab',
-            hero_sub: '交互式仿真 · 开放学习资源',
-            hero_desc: '为物理专业学生打造的平台 — 包含交互式仿真和丰富的学习资料。',
-            hero_btn: '浏览资料 →',
-            // 卡片
-            card1_title: '学习资料',
-            card1_desc: 'PDF、讲义、LaTeX 草稿和 Markdown 摘要 — 按主题分类，方便查阅。',
-            card1_btn: '进入资料库 →',
-            card2_title: '交互式仿真',
-            card2_desc: '从经典力学到电磁学的物理仿真 — 直接在浏览器中运行。',
-            card2_btn: '探索仿真 →',
-            // 页脚
-            footer: 'PhysicsLab · 基于 GitHub Pages 构建 · 2026'
-        },
-        en: {
-            // 导航栏
-            nav_home: 'Home',
-            nav_resources: 'Resources',
-            nav_simulations: 'Simulations',
-            // Hero
-            hero_title: 'Welcome to PhysicsLab',
-            hero_sub: 'Interactive simulations · Open learning resources',
-            hero_desc: 'A curated platform for physics students — explore interactive simulations and access learning resources.',
-            hero_btn: 'Browse Resources →',
-            // 卡片
-            card1_title: 'Learning Resources',
-            card1_desc: 'PDFs, lecture notes, LaTeX drafts, and markdown summaries — organised by topic for easy access.',
-            card1_btn: 'Go to Library →',
-            card2_title: 'Interactive Simulations',
-            card2_desc: 'Physics simulations from classical mechanics to electromagnetism — run in your browser.',
-            card2_btn: 'Explore Simulations →',
-            // 页脚
-            footer: 'PhysicsLab · built with GitHub Pages · 2026'
-        }
-    };
-
-    let currentLang = 'en';
-
-    function switchLanguage(lang) {
-        currentLang = lang;
-        const t = translations[lang];
-
-        document.querySelectorAll('[data-key]').forEach(el => {
-            const key = el.dataset.key;
-            if (t[key] !== undefined) {
-                el.textContent = t[key];
+    <script>
+        // ============================================================
+        //  LANGUAGE SUPPORT
+        // ============================================================
+        const translations = {
+            zh: {
+                nav_home: '首页',
+                nav_resources: '资料库',
+                nav_simulations: '仿真',
+                hero_title: '欢迎来到 PhysicsLab',
+                hero_sub: '交互式仿真 · 开放学习资源',
+                hero_desc: '为物理专业学生打造的平台 — 包含交互式仿真和丰富的学习资料。',
+                hero_btn: '浏览资料 →',
+                card1_title: '学习资料',
+                card1_desc: 'PDF、讲义、LaTeX 草稿和 Markdown 摘要 — 按主题分类，方便查阅。',
+                card1_btn: '进入资料库 →',
+                card2_title: '交互式仿真',
+                card2_desc: '经典的物理仿真 — 直接在浏览器中运行。',
+                card2_btn: '探索仿真 →',
+                footer: 'PhysicsLab · 基于 GitHub Pages 构建 · 2026'
+            },
+            en: {
+                nav_home: 'Home',
+                nav_resources: 'Resources',
+                nav_simulations: 'Simulations',
+                hero_title: 'Welcome to PhysicsLab',
+                hero_sub: 'Interactive simulations · Open learning resources',
+                hero_desc: 'A curated platform for physics students — explore interactive simulations and access learning resources.',
+                hero_btn: 'Browse Resources →',
+                card1_title: 'Learning Resources',
+                card1_desc: 'PDFs, lecture notes, LaTeX drafts, and markdown summaries — organised by topic for easy access.',
+                card1_btn: 'Go to Library →',
+                card2_title: 'Interactive Simulations',
+                card2_desc: 'Physics simulations from classical mechanics to electromagnetism — run in your browser.',
+                card2_btn: 'Explore Simulations →',
+                footer: 'PhysicsLab · built with GitHub Pages · 2026'
             }
-        });
+        };
 
-        const toggleBtn = document.getElementById('langToggle');
-        if (toggleBtn) {
-            toggleBtn.textContent = lang === 'zh' ? 'English' : '中文';
-        }
+        let currentLang = 'en';
 
-        localStorage.setItem('preferredLang', lang);
-        document.documentElement.lang = lang;
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleBtn = document.getElementById('langToggle');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', function() {
-                const newLang = currentLang === 'zh' ? 'en' : 'zh';
-                switchLanguage(newLang);
+        function switchLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.dataset.key;
+                if (t[key] !== undefined) {
+                    el.textContent = t[key];
+                }
             });
+            const toggleBtn = document.getElementById('langToggle');
+            if (toggleBtn) toggleBtn.textContent = lang === 'zh' ? 'English' : '中文';
+            localStorage.setItem('preferredLang', lang);
+            document.documentElement.lang = lang;
         }
 
-        const savedLang = localStorage.getItem('preferredLang') || 'en';
-        switchLanguage(savedLang);
-    });
-</script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('langToggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    switchLanguage(currentLang === 'zh' ? 'en' : 'zh');
+                });
+            }
+            const savedLang = localStorage.getItem('preferredLang') || 'en';
+            switchLanguage(savedLang);
+        });
+    </script>
 
 </body>
 </html>
