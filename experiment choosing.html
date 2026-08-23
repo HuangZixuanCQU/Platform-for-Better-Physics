@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysicsLab · AI Experiment</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f4f6f9;
+            color: #1a2332;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.07);
+        }
+
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0 16px;
+            border-bottom: 2px solid #e6edf4;
+            margin-bottom: 24px;
+        }
+        .top-bar .logo {
+            font-size: 22px;
+            font-weight: 600;
+            color: #0a1a2b;
+        }
+        .top-bar .logo span {
+            color: #2d7aff;
+        }
+        .top-bar .nav-links {
+            display: flex;
+            gap: 28px;
+            font-size: 15px;
+            align-items: center;
+        }
+        .top-bar .nav-links a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: 0.15s;
+        }
+        .top-bar .nav-links a:hover {
+            color: #1a5fd0;
+            border-bottom-color: #2d7aff;
+        }
+        .top-bar .nav-links a.active {
+            color: #1a5fd0;
+            border-bottom-color: #2d7aff;
+        }
+        .top-bar .nav-links a.experiment {
+            color: #f59e0b;
+        }
+        .top-bar .nav-links a.experiment:hover {
+            color: #d97706;
+        }
+        .lang-btn {
+            background: #2d7aff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            font-family: inherit;
+        }
+        .lang-btn:hover {
+            background: #1a5fd0;
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+        .page-header h1 {
+            font-size: 30px;
+            font-weight: 600;
+        }
+        .page-header h1 span {
+            color: #f59e0b;
+        }
+        .page-header p {
+            color: #4a5a6e;
+            font-size: 16px;
+            margin-top: 4px;
+        }
+
+        .experiment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .experiment-card {
+            background: white;
+            border-radius: 20px;
+            padding: 28px 24px 26px;
+            border: 1px solid #eef3f8;
+            transition: 0.25s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .experiment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #2d7aff;
+            opacity: 0;
+            transition: 0.25s;
+        }
+        .experiment-card:hover {
+            border-color: #c0d6f0;
+            box-shadow: 0 8px 30px rgba(45, 122, 255, 0.08);
+            transform: translateY(-4px);
+        }
+        .experiment-card:hover::before {
+            opacity: 1;
+        }
+        .experiment-card .badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 3px 12px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            align-self: flex-start;
+        }
+        .badge.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge.coming {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .badge.beta {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .experiment-card .icon {
+            font-size: 32px;
+            font-weight: 300;
+            color: #2d7aff;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+        .experiment-card .icon.gold {
+            color: #f59e0b;
+        }
+        .experiment-card h3 {
+            font-size: 19px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .experiment-card .topic {
+            font-size: 13px;
+            color: #2d7aff;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .experiment-card p {
+            color: #4a5a6e;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            flex: 1;
+        }
+        .experiment-card .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+        .experiment-card .tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .experiment-card .tags span {
+            background: #e9ecf0;
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            color: #4a5a6e;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .experiment-card a {
+            color: #f59e0b;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.15s;
+            padding: 6px 16px;
+            border-radius: 20px;
+            background: #fef3c7;
+        }
+        .experiment-card a:hover {
+            background: #f59e0b;
+            color: white;
+        }
+        .experiment-card a.disabled {
+            color: #94a3b8;
+            background: #f1f3f5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .footer-note {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid #e6edf4;
+            font-size: 14px;
+            color: #6b7f94;
+            text-align: center;
+        }
+
+        @media (max-width: 640px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .top-bar .nav-links {
+                gap: 18px;
+                flex-wrap: wrap;
+            }
+            .experiment-grid {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Navigation -->
+        <div class="top-bar">
+            <div class="logo">Physics<span>Lab</span></div>
+            <div class="nav-links">
+                <a href="index.html" data-key="nav_home">Home</a>
+                <a href="share.html" data-key="nav_resources">Resources</a>
+                <a href="simulations.html" data-key="nav_simulations">Simulations</a>
+                <a href="experiment.html" class="active experiment" data-key="nav_experiment">AI for Experiment</a>
+                <button id="langToggle" class="lang-btn">中文</button>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1>AI for <span>Experiment</span></h1>
+            <p data-key="experiment_sub">Real-time AI-powered analysis for physics experiments. Select an experiment below.</p>
+        </div>
+
+        <!-- Experiment Grid -->
+        <div class="experiment-grid">
+
+            <!-- Card 1: Chaos Pendulum -->
+            <div class="experiment-card">
+                <span class="badge ready" data-key="badge_ready">Ready</span>
+                <div class="icon gold">CHA</div>
+                <h3 data-key="exp_chaos_title">Chaotic Pendulum</h3>
+                <div class="topic" data-key="exp_chaos_topic">Nonlinear Dynamics · Chaos</div>
+                <p data-key="exp_chaos_desc">Real-time keypoint detection, phase plot (omega vs theta), and Lyapunov exponent calculation using YOLOv8.</p>
+                <div class="card-footer">
+                    <div class="tags">
+                        <span>YOLO</span>
+                        <span>Computer Vision</span>
+                        <span>Wolf Algorithm</span>
+                    </div>
+                    <a href="experiment/chaos-pendulum.html" data-key="exp_chaos_btn">Launch Experiment →</a>
+                </div>
+            </div>
+
+            <!-- Card 2: Projectile Tracking (Coming Soon) -->
+            <div class="experiment-card">
+                <span class="badge coming" data-key="badge_coming">Coming Soon</span>
+                <div class="icon">PRJ</div>
+                <h3 data-key="exp_projectile_title">Projectile Motion Tracking</h3>
+                <div class="topic" data-key="exp_projectile_topic">Classical Mechanics · Kinematics</div>
+                <p data-key="exp_projectile_desc">Track projectile trajectory in real-time. Calculate velocity, acceleration, and compare with theoretical predictions.</p>
+                <div class="card-footer">
+                    <div class="tags">
+                        <span>Object Tracking</span>
+                        <span>Kinematics</span>
+                    </div>
+                    <a href="#" class="disabled" data-key="exp_coming_soon">In Development</a>
+                </div>
+            </div>
+
+            <!-- Card 3: Spring-Mass Oscillator (Coming Soon) -->
+            <div class="experiment-card">
+                <span class="badge coming" data-key="badge_coming">Coming Soon</span>
+                <div class="icon">SPR</div>
+                <h3 data-key="exp_spring_title">Spring-Mass Oscillator</h3>
+                <div class="topic" data-key="exp_spring_topic">Harmonic Motion · SHM</div>
+                <p data-key="exp_spring_desc">Analyze spring-mass oscillations. Measure period, frequency, and damping coefficient from video data.</p>
+                <div class="card-footer">
+                    <div class="tags">
+                        <span>Motion Analysis</span>
+                        <span>SHM</span>
+                    </div>
+                    <a href="#" class="disabled" data-key="exp_coming_soon">In Development</a>
+                </div>
+            </div>
+
+            <!-- Card 4: Fluid Dynamics (Coming Soon) -->
+            <div class="experiment-card">
+                <span class="badge coming" data-key="badge_coming">Coming Soon</span>
+                <div class="icon">FLU</div>
+                <h3 data-key="exp_fluid_title">Fluid Dynamics Analysis</h3>
+                <div class="topic" data-key="exp_fluid_topic">Fluid Mechanics · Visualization</div>
+                <p data-key="exp_fluid_desc">Track particle motion in fluids. Visualize streamlines, calculate flow velocity and vorticity.</p>
+                <div class="card-footer">
+                    <div class="tags">
+                        <span>Particle Tracking</span>
+                        <span>Fluid Flow</span>
+                    </div>
+                    <a href="#" class="disabled" data-key="exp_coming_soon">In Development</a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-note" data-key="footer">
+            PhysicsLab · built with GitHub Pages · 2026
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!--  LANGUAGE SUPPORT                                             -->
+    <!-- ============================================================ -->
+    <script>
+        const translations = {
+            zh: {
+                nav_home: '首页',
+                nav_resources: '资料库',
+                nav_simulations: '仿真',
+                nav_experiment: 'AI 实验分析',
+                experiment_sub: 'AI 驱动的实时物理实验分析。选择下方实验开始。',
+                badge_ready: '就绪',
+                badge_coming: '开发中',
+                exp_chaos_title: '混沌摆',
+                exp_chaos_topic: '非线性动力学 · 混沌',
+                exp_chaos_desc: '使用 YOLOv8 实时关键点检测、相图绘制（ω vs θ）和李雅普诺夫指数计算。',
+                exp_chaos_btn: '启动实验 →',
+                exp_projectile_title: '抛体运动追踪',
+                exp_projectile_topic: '经典力学 · 运动学',
+                exp_projectile_desc: '实时追踪抛体轨迹。计算速度、加速度，并与理论值对比。',
+                exp_spring_title: '弹簧振子',
+                exp_spring_topic: '简谐运动 · SHM',
+                exp_spring_desc: '分析弹簧振子运动。从视频中测量周期、频率和阻尼系数。',
+                exp_fluid_title: '流体动力学分析',
+                exp_fluid_topic: '流体力学 · 可视化',
+                exp_fluid_desc: '追踪流体中的粒子运动。可视化流线，计算流速和涡量。',
+                exp_coming_soon: '开发中',
+                footer: 'PhysicsLab · 基于 GitHub Pages 构建 · 2026'
+            },
+            en: {
+                nav_home: 'Home',
+                nav_resources: 'Resources',
+                nav_simulations: 'Simulations',
+                nav_experiment: 'AI for Experiment',
+                experiment_sub: 'Real-time AI-powered analysis for physics experiments. Select an experiment below.',
+                badge_ready: 'Ready',
+                badge_coming: 'Coming Soon',
+                exp_chaos_title: 'Chaotic Pendulum',
+                exp_chaos_topic: 'Nonlinear Dynamics · Chaos',
+                exp_chaos_desc: 'Real-time keypoint detection, phase plot (omega vs theta), and Lyapunov exponent calculation using YOLOv8.',
+                exp_chaos_btn: 'Launch Experiment →',
+                exp_projectile_title: 'Projectile Motion Tracking',
+                exp_projectile_topic: 'Classical Mechanics · Kinematics',
+                exp_projectile_desc: 'Track projectile trajectory in real-time. Calculate velocity, acceleration, and compare with theoretical predictions.',
+                exp_spring_title: 'Spring-Mass Oscillator',
+                exp_spring_topic: 'Harmonic Motion · SHM',
+                exp_spring_desc: 'Analyze spring-mass oscillations. Measure period, frequency, and damping coefficient from video data.',
+                exp_fluid_title: 'Fluid Dynamics Analysis',
+                exp_fluid_topic: 'Fluid Mechanics · Visualization',
+                exp_fluid_desc: 'Track particle motion in fluids. Visualize streamlines, calculate flow velocity and vorticity.',
+                exp_coming_soon: 'In Development',
+                footer: 'PhysicsLab · built with GitHub Pages · 2026'
+            }
+        };
+
+        let currentLang = 'en';
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.dataset.key;
+                if (t[key] !== undefined) {
+                    el.textContent = t[key];
+                }
+            });
+            const toggleBtn = document.getElementById('langToggle');
+            if (toggleBtn) toggleBtn.textContent = lang === 'zh' ? 'English' : '中文';
+            localStorage.setItem('preferredLang', lang);
+            document.documentElement.lang = lang;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('langToggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    switchLanguage(currentLang === 'zh' ? 'en' : 'zh');
+                });
+            }
+            const savedLang = localStorage.getItem('preferredLang') || 'en';
+            switchLanguage(savedLang);
+        });
+    </script>
+
+</body>
+</html>
