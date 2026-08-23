@@ -70,6 +70,27 @@
             color: #1a5fd0;
             border-bottom-color: #2d7aff;
         }
+        .top-bar .nav-links a.experiment {
+            color: #f59e0b;
+        }
+        .top-bar .nav-links a.experiment:hover {
+            color: #d97706;
+        }
+        .lang-btn {
+            background: #2d7aff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            font-family: inherit;
+        }
+        .lang-btn:hover {
+            background: #1a5fd0;
+        }
 
         .sim-title {
             margin-bottom: 12px;
@@ -256,16 +277,18 @@
         <div class="top-bar">
             <div class="logo">Physics<span>Lab</span></div>
             <div class="nav-links">
-                <a href="../index.html">Home</a>
-                <a href="../share.html">Resources</a>
-                <a href="../simulations.html" class="active">Simulations</a>
+                <a href="../index.html" data-key="nav_home">Home</a>
+                <a href="../share.html" data-key="nav_resources">Resources</a>
+                <a href="../simulations.html" class="active" data-key="nav_simulations">Simulations</a>
+                <a href="../experiment%20choosing.html" class="experiment" data-key="nav_experiment">AI for Experiment</a>
+                <button id="langToggle" class="lang-btn">中文</button>
             </div>
         </div>
 
         <!-- Title -->
         <div class="sim-title">
-            <h1>Projectile <span>Motion</span></h1>
-            <p>Real-time simulation · Adjust parameters and watch the trajectory update</p>
+            <h1 data-key="title">Projectile <span>Motion</span></h1>
+            <p data-key="subtitle">Real-time simulation · Adjust parameters and watch the trajectory update</p>
         </div>
 
         <!-- Main Layout -->
@@ -277,56 +300,133 @@
             <!-- Controls -->
             <div class="controls">
                 <div class="ctrl-group">
-                    <label>Initial Speed <span class="value-badge" id="speedDisplay">28.0</span></label>
+                    <label data-key="label_speed">Initial Speed <span class="value-badge" id="speedDisplay">28.0</span></label>
                     <input type="range" id="speedSlider" min="6" max="55" value="28" step="0.5">
                 </div>
                 <div class="ctrl-group">
-                    <label>Launch Angle <span class="value-badge" id="angleDisplay">52°</span></label>
+                    <label data-key="label_angle">Launch Angle <span class="value-badge" id="angleDisplay">52°</span></label>
                     <input type="range" id="angleSlider" min="5" max="85" value="52" step="0.5">
                 </div>
                 <div class="ctrl-group">
-                    <label>Launch Height <span class="value-badge" id="heightDisplay">0.0</span></label>
+                    <label data-key="label_height">Launch Height <span class="value-badge" id="heightDisplay">0.0</span></label>
                     <input type="range" id="heightSlider" min="-6" max="24" value="0" step="0.5">
                 </div>
 
                 <div class="ctrl-group">
                     <div class="checkbox-group">
                         <input type="checkbox" id="showTrajectory" checked>
-                        <label for="showTrajectory">Trajectory</label>
+                        <label for="showTrajectory" data-key="chk_trajectory">Trajectory</label>
                     </div>
                     <div class="checkbox-group">
                         <input type="checkbox" id="showEnvelope" checked>
-                        <label for="showEnvelope">Safety parabola</label>
+                        <label for="showEnvelope" data-key="chk_envelope">Safety parabola</label>
                     </div>
                     <div class="checkbox-group">
                         <input type="checkbox" id="showRangeLine" checked>
-                        <label for="showRangeLine">Range indicator</label>
+                        <label for="showRangeLine" data-key="chk_range">Range indicator</label>
                     </div>
                     <div class="checkbox-group">
                         <input type="checkbox" id="showVelocity" checked>
-                        <label for="showVelocity">Velocity vector</label>
+                        <label for="showVelocity" data-key="chk_velocity">Velocity vector</label>
                     </div>
                 </div>
 
-                <button class="btn-reset" id="resetBtn">⟳ Reset to default</button>
+                <button class="btn-reset" id="resetBtn" data-key="btn_reset">⟳ Reset to default</button>
 
                 <div class="legend">
-                    <span class="legend-item"><span class="legend-dot" style="background:#2d7aff;"></span> Trajectory</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#dc3545;"></span> Envelope</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#28a745;"></span> Range</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#ff6b35;"></span> Velocity</span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#2d7aff;"></span> <span data-key="leg_trajectory">Trajectory</span></span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#dc3545;"></span> <span data-key="leg_envelope">Envelope</span></span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#28a745;"></span> <span data-key="leg_range">Range</span></span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#ff6b35;"></span> <span data-key="leg_velocity">Velocity</span></span>
                 </div>
-                <div class="hint-text">Drag sliders · real-time update</div>
+                <div class="hint-text" data-key="hint">Drag sliders · real-time update</div>
             </div>
         </div>
 
-        <div class="footer-note">PhysicsLab · p5.js · 2026</div>
+        <div class="footer-note" data-key="footer">PhysicsLab · p5.js · 2026</div>
     </div>
 
     <script>
         // ============================================================
+        //  LANGUAGE SUPPORT
+        // ============================================================
+        const translations = {
+            zh: {
+                nav_home: '首页',
+                nav_resources: '资料库',
+                nav_simulations: '仿真',
+                nav_experiment: 'AI 实验分析',
+                title: '抛体运动',
+                subtitle: '实时仿真 · 调整参数并观察轨迹变化',
+                label_speed: '初速度',
+                label_angle: '发射角度',
+                label_height: '发射高度',
+                chk_trajectory: '轨迹',
+                chk_envelope: '安全抛物线',
+                chk_range: '射程指示',
+                chk_velocity: '速度矢量',
+                btn_reset: '⟳ 重置为默认',
+                leg_trajectory: '轨迹',
+                leg_envelope: '包络线',
+                leg_range: '射程',
+                leg_velocity: '速度',
+                hint: '拖动滑块 · 实时更新',
+                footer: 'PhysicsLab · p5.js · 2026'
+            },
+            en: {
+                nav_home: 'Home',
+                nav_resources: 'Resources',
+                nav_simulations: 'Simulations',
+                nav_experiment: 'AI for Experiment',
+                title: 'Projectile Motion',
+                subtitle: 'Real-time simulation · Adjust parameters and watch the trajectory update',
+                label_speed: 'Initial Speed',
+                label_angle: 'Launch Angle',
+                label_height: 'Launch Height',
+                chk_trajectory: 'Trajectory',
+                chk_envelope: 'Safety parabola',
+                chk_range: 'Range indicator',
+                chk_velocity: 'Velocity vector',
+                btn_reset: '⟳ Reset to default',
+                leg_trajectory: 'Trajectory',
+                leg_envelope: 'Envelope',
+                leg_range: 'Range',
+                leg_velocity: 'Velocity',
+                hint: 'Drag sliders · real-time update',
+                footer: 'PhysicsLab · p5.js · 2026'
+            }
+        };
+
+        let currentLang = 'en';
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.dataset.key;
+                if (t[key] !== undefined) {
+                    el.textContent = t[key];
+                }
+            });
+            const toggleBtn = document.getElementById('langToggle');
+            if (toggleBtn) toggleBtn.textContent = lang === 'zh' ? 'English' : '中文';
+            localStorage.setItem('preferredLang', lang);
+            document.documentElement.lang = lang;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('langToggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    switchLanguage(currentLang === 'zh' ? 'en' : 'zh');
+                });
+            }
+            const savedLang = localStorage.getItem('preferredLang') || 'en';
+            switchLanguage(savedLang);
+        });
+
+        // ============================================================
         //  PROJECTILE MOTION · p5.js
-        //  Real-time simulation with trajectory, envelope, range, velocity
         // ============================================================
 
         // ----- Parameters -----
@@ -458,7 +558,6 @@
             stroke(60, 70, 90);
             strokeWeight(2.2);
             line(0, groundY, width, groundY);
-            // Ground label
             fill(60, 70, 90);
             noStroke();
             textSize(11);
@@ -469,7 +568,6 @@
             // ----- Launch point -----
             const launchX = originX;
             const launchY = groundY - heightM * scaleFactor;
-            // Clamp launchY to visible range
             const clampedLaunchY = constrain(launchY, 10, groundY - 2);
 
             push();
@@ -480,7 +578,6 @@
             strokeWeight(1.2);
             line(originX - 14, clampedLaunchY, originX + 14, clampedLaunchY);
             line(originX, clampedLaunchY - 14, originX, clampedLaunchY + 14);
-            // Launch point label
             fill(30, 41, 59, 180);
             noStroke();
             textSize(11);
@@ -501,7 +598,6 @@
                     }
                 }
                 endShape();
-                // dashed extension
                 stroke(220, 60, 80, 80);
                 strokeWeight(1.5);
                 drawingContext.setLineDash([6, 8]);
@@ -531,7 +627,6 @@
                     }
                 }
                 endShape();
-                // Glow effect
                 stroke(45, 120, 255, 40);
                 strokeWeight(6);
                 beginShape();
@@ -562,18 +657,15 @@
                 if (groundCross) {
                     const rangeM = (groundCross.x - originX) / scaleFactor;
                     push();
-                    // Range bar
                     fill(40, 167, 69, 60);
                     noStroke();
                     rect(originX, groundY - 3, groundCross.x - originX, 6);
                     stroke(40, 167, 69, 200);
                     strokeWeight(2);
                     line(originX, groundY, groundCross.x, groundY);
-                    // Arrow tip
                     fill(40, 167, 69);
                     noStroke();
                     circle(groundCross.x, groundY, 6);
-                    // Range label
                     fill(40, 167, 69, 220);
                     noStroke();
                     textSize(13);
@@ -594,7 +686,6 @@
                 stroke(255, 107, 53);
                 strokeWeight(2.5);
                 line(ballPos.x, ballPos.y, endX, endY);
-                // Arrowhead
                 const angleArrow = atan2(ballVel.y, ballVel.x);
                 const headLen = 10;
                 push();
@@ -604,7 +695,6 @@
                 noStroke();
                 triangle(0, 0, -headLen, -headLen * 0.4, -headLen, headLen * 0.4);
                 pop();
-                // Speed label
                 fill(255, 107, 53);
                 noStroke();
                 textSize(12);
@@ -619,13 +709,11 @@
             if (ballPos) {
                 const bx = constrain(ballPos.x, 0, width);
                 const by = constrain(ballPos.y, 0, height);
-                // Shadow
                 push();
                 noStroke();
                 fill(0, 0, 0, 40);
                 ellipse(bx + 3, by + 6, ballRadius * 1.5, ballRadius * 0.5);
                 pop();
-                // Ball
                 push();
                 const grad = drawingContext.createRadialGradient(
                     bx - 4, by - 6, 3,
@@ -638,7 +726,6 @@
                 drawingContext.beginPath();
                 drawingContext.arc(bx, by, ballRadius, 0, Math.PI * 2);
                 drawingContext.fill();
-                // Highlight
                 fill(255, 255, 255, 120);
                 ellipse(bx - 3, by - 5, 6, 4);
                 pop();
@@ -685,7 +772,6 @@
                 y = heightM + vy * t - 0.5 * gravity * t * t;
 
                 if (y < 0) {
-                    // Linear interpolation to ground
                     const lastP = trailPoints[trailPoints.length - 1];
                     const prevP = trailPoints[trailPoints.length - 2] || lastP;
                     if (lastP.y !== prevP.y) {
@@ -704,7 +790,6 @@
             if (trailPoints.length > 0) {
                 const last = trailPoints[trailPoints.length - 1];
                 ballPos = last.copy();
-                // Velocity at last point (magnitude and direction)
                 const vxPix = vx * scaleFactor;
                 const vyPix = (-vy + gravity * t) * scaleFactor;
                 ballVel = createVector(vxPix, vyPix);
@@ -728,7 +813,6 @@
                 if (px > width + 20) break;
                 envelopePoints.push(createVector(px, py));
             }
-            // Negative x side (symmetric) - only if launch height allows
             const negPoints = [];
             for (let i = 1; i <= 30; i++) {
                 const xPhys = -(i / 30) * maxRange * 0.3;
