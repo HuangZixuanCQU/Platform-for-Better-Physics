@@ -52,6 +52,7 @@
             display: flex;
             gap: 24px;
             font-size: 14px;
+            align-items: center;
         }
         .top-bar .nav-links a {
             color: #94a3b8;
@@ -65,7 +66,7 @@
         .top-bar .nav-links a.active {
             color: #f8fafc;
         }
-    
+        
         .lang-btn {
             background: #3b82f6;
             color: white;
@@ -420,7 +421,7 @@
                 card_phase: '相图 (ω vs θ) 与李雅普诺夫指数',
                 label_lle: '最大 LLE (Wolf)',
                 label_status: '状态',
-                label_points: '数据点',
+                label_points: '数据点数',
                 label_time: '时间 (秒)',
                 log_waiting: '等待摄像头... 启动检测以开始数据采集。'
             },
@@ -729,7 +730,7 @@
                     type: 'scatter',
                     data: {
                         datasets: [{
-                            label: 'Phase Space (omega vs theta)',
+                            label: 'Phase Space (ω vs θ)',
                             data: [],
                             backgroundColor: 'rgba(59, 130, 246, 0.3)',
                             borderColor: 'rgba(59, 130, 246, 0.8)',
@@ -750,7 +751,7 @@
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
-                                        return 'theta: ' + context.parsed.x.toFixed(3) + ' rad, omega: ' + context
+                                        return 'θ: ' + context.parsed.x.toFixed(3) + ' rad, ω: ' + context
                                             .parsed.y.toFixed(3) + ' rad/s';
                                     }
                                 }
@@ -758,12 +759,12 @@
                         },
                         scales: {
                             x: {
-                                title: { display: true, text: 'theta (rad)', color: '#94a3b8', font: { size: 11 } },
+                                title: { display: true, text: 'θ (rad)', color: '#94a3b8', font: { size: 11 } },
                                 grid: { color: 'rgba(148, 163, 184, 0.1)' },
                                 ticks: { color: '#64748b' }
                             },
                             y: {
-                                title: { display: true, text: 'omega (rad/s)', color: '#94a3b8', font: { size: 11 } },
+                                title: { display: true, text: 'ω (rad/s)', color: '#94a3b8', font: { size: 11 } },
                                 grid: { color: 'rgba(148, 163, 184, 0.1)' },
                                 ticks: { color: '#64748b' }
                             }
@@ -838,7 +839,7 @@
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = 'red';
                 ctx.font = '20px Arial';
-                ctx.fillText('摄像头已连接', 20, 50);
+                ctx.fillText('Camera connected', 20, 50);
             }
 
             try {
@@ -985,7 +986,7 @@
             ctx.fillStyle = '#facc15';
             ctx.font = '12px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('theta = ' + (angle * 180 / Math.PI).toFixed(1) + ' deg', labelX, labelY);
+            ctx.fillText('θ = ' + (angle * 180 / Math.PI).toFixed(1) + '°', labelX, labelY);
 
             ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
             ctx.roundRect(8, 8, 140, 56, 8);
@@ -1054,7 +1055,7 @@
         // ============================================================
 
         async function startCamera() {
-            console.log('startCamera 被调用');
+            console.log('startCamera called');
             try {
                 log('Starting camera...', 'info');
 
@@ -1069,7 +1070,7 @@
                 });
                 video.srcObject = stream;
                 await video.play();
-                console.log('摄像头启动成功');
+                console.log('Camera started successfully');
 
                 canvas = document.createElement('canvas');
                 canvas.width = 640;
@@ -1096,9 +1097,9 @@
                 cameraContainer.appendChild(canvas);
 
                 log('Loading YOLO model...', 'info');
-                console.log('开始加载模型...');
+                console.log('Loading model...');
                 model = await YOLO.load('../Models/yolov8n.onnx');
-                console.log('模型加载成功');
+                console.log('Model loaded successfully');
                 log('YOLO model loaded successfully!', 'info');
 
                 isRunning = true;
@@ -1113,14 +1114,14 @@
                 inferenceLoop();
 
             } catch (err) {
-                console.error('启动失败:', err);
+                console.error('Start failed:', err);
                 log('Failed to start: ' + err.message, 'error');
                 statusText.textContent = 'Error: ' + err.message;
             }
         }
 
         function stopCamera() {
-            console.log('stopCamera 被调用');
+            console.log('stopCamera called');
             isRunning = false;
             if (video && video.srcObject) {
                 video.srcObject.getTracks().forEach(track => track.stop());
@@ -1145,7 +1146,7 @@
         }
 
         // ============================================================
-        //  暴露到全局（供 onclick 调用）
+        //  EXPOSE TO GLOBAL (for onclick)
         // ============================================================
 
         window.startCamera = startCamera;
@@ -1153,11 +1154,11 @@
         window.resetData = resetData;
         window.exportCSV = exportCSV;
 
-        console.log('函数已暴露到 window');
-        console.log('startCamera 类型:', typeof window.startCamera);
+        console.log('Functions exposed to window');
+        console.log('startCamera type:', typeof window.startCamera);
 
         // ============================================================
-        //  键盘快捷键
+        //  KEYBOARD SHORTCUTS
         // ============================================================
 
         document.addEventListener('keydown', function(e) {
@@ -1171,14 +1172,14 @@
         });
 
         // ============================================================
-        //  初始化状态
+        //  INIT
         // ============================================================
 
         document.addEventListener('DOMContentLoaded', function() {
             if (stopBtn) stopBtn.disabled = true;
             log('AI for Chaotic Pendulum initialized', 'info');
             log('Click "Start Camera" to begin', 'info');
-            console.log('DOM 加载完成，初始化完成');
+            console.log('DOM loaded, init complete');
         });
     </script>
 
