@@ -1070,7 +1070,7 @@
             cameraContainer.appendChild(canvas);
 
             log('Loading YOLO model...', 'info');
-            model = await YOLO.load('/Models/yolov8n.onnx');  
+            model = await YOLO.load('../Models/yolov8n.onnx');  
             log('YOLO model loaded successfully!', 'info');
 
             // Start inference
