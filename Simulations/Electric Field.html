@@ -217,16 +217,15 @@
 
     <script>
         // ============================================================
-        //  ELECTRIC FIELD VISUALISER (p5.js)
+        //  ELECTRIC FIELD VISUALISER (p5.js) - 实时重绘
         // ============================================================
 
         let q1 = 5,
             q2 = -5;
         let separation = 100;
-        let gridSize = 30;
         let fieldLines = [];
-        let equipotentialPoints = [];
-        let chargePositions = [];
+        let needRedraw = true;
+        let originX, originY;
 
         const q1Slider = document.getElementById('q1Slider');
         const q2Slider = document.getElementById('q2Slider');
@@ -239,9 +238,6 @@
         const q1Display = document.getElementById('q1Display');
         const q2Display = document.getElementById('q2Display');
         const linesDisplay = document.getElementById('linesDisplay');
-
-        let originX, originY;
-        let scale = 1;
 
         // ============================================================
         //  PHYSICS
@@ -277,15 +273,13 @@
                 const dx = px - cx,
                     dy = py - cy;
                 const r = sqrt(dx * dx + dy * dy);
-                if (r < 1) return 100 * sign(q);
+                if (r < 1) return 100 * (q > 0 ? 1 : -1);
                 v += q / r;
             }
             return v;
         }
 
-        function sign(x) { return x > 0 ? 1 : x < 0 ? -1 : 0; }
-
-        function traceFieldLine(startX, startY, steps = 300) {
+        function traceFieldLine(startX, startY, steps = 350) {
             const pts = [{ x: startX, y: startY }];
             let x = startX,
                 y = startY;
@@ -293,17 +287,16 @@
                 const [ex, ey] = electricField(x, y);
                 const mag = sqrt(ex * ex + ey * ey);
                 if (mag < 0.01) break;
-                const step = 2.5;
-                x += step * ex / mag;
-                y += step * ey / mag;
-                if (x < -350 || x > 350 || y < -350 || y > 350) break;
-                // Check if too close to charges
+                const stepSize = 2.8;
+                x += stepSize * ex / mag;
+                y += stepSize * ey / mag;
+                if (x < -380 || x > 380 || y < -380 || y > 380) break;
                 let tooClose = false;
                 for (const [q, cx, cy] of [
                         [q1, -separation / 2, 0],
                         [q2, separation / 2, 0]
                     ]) {
-                    if (dist(x, y, cx, cy) < 15) tooClose = true;
+                    if (dist(x, y, cx, cy) < 14) tooClose = true;
                 }
                 if (tooClose) break;
                 pts.push({ x, y });
@@ -311,66 +304,18 @@
             return pts;
         }
 
-        function computeEquipotentials() {
-            const levels = [];
-            const targets = [-4, -2, -1, -0.5, 0.5, 1, 2, 4];
-            // Find equipotential points by scanning
+        function computeEquipotentialPoints() {
             const pts = [];
-            const step = 6;
-            for (let x = -300; x <= 300; x += step) {
-                for (let y = -300; y <= 300; y += step) {
+            const step = 5;
+            for (let x = -320; x <= 320; x += step) {
+                for (let y = -320; y <= 320; y += step) {
                     const v = electricPotential(x, y);
-                    if (abs(v) < 10 && abs(v) > 0.1) {
+                    if (abs(v) < 6 && abs(v) > 0.15) {
                         pts.push({ x, y, v });
                     }
                 }
             }
             return pts;
-        }
-
-        // ============================================================
-        //  p5.js
-        // ============================================================
-
-        function setup() {
-            pixelDensity(1);
-            const canvas = createCanvas(800, 700);
-            canvas.parent('canvas-container');
-            originX = width / 2;
-            originY = height / 2;
-            computeFieldLines();
-
-            q1Slider.addEventListener('input', function() {
-                q1 = parseFloat(this.value);
-                q1Value.textContent = (q1 >= 0 ? '+' : '') + q1.toFixed(1);
-                computeFieldLines();
-                updateInfo();
-            });
-            q2Slider.addEventListener('input', function() {
-                q2 = parseFloat(this.value);
-                q2Value.textContent = (q2 >= 0 ? '+' : '') + q2.toFixed(1);
-                computeFieldLines();
-                updateInfo();
-            });
-            sepSlider.addEventListener('input', function() {
-                separation = parseFloat(this.value);
-                sepValue.textContent = separation;
-                computeFieldLines();
-                updateInfo();
-            });
-            resetBtn.addEventListener('click', function() {
-                q1Slider.value = '5';
-                q2Slider.value = '-5';
-                sepSlider.value = '100';
-                q1 = 5;
-                q2 = -5;
-                separation = 100;
-                q1Value.textContent = '+5.0';
-                q2Value.textContent = '-5.0';
-                sepValue.textContent = '100';
-                computeFieldLines();
-                updateInfo();
-            });
         }
 
         function computeFieldLines() {
@@ -379,20 +324,21 @@
                 [q1, -separation / 2, 0],
                 [q2, separation / 2, 0]
             ];
-            const nLines = 24;
+            const nLines = 28;
             for (const [q, cx, cy] of charges) {
                 if (q > 0) {
                     for (let i = 0; i < nLines; i++) {
                         const angle = (TWO_PI / nLines) * i;
-                        const r = 12;
+                        const r = 13;
                         const sx = cx + r * cos(angle);
                         const sy = cy + r * sin(angle);
                         const line = traceFieldLine(sx, sy);
-                        if (line.length > 5) fieldLines.push(line);
+                        if (line.length > 8) fieldLines.push(line);
                     }
                 }
             }
             linesDisplay.textContent = fieldLines.length;
+            needRedraw = false;
         }
 
         function updateInfo() {
@@ -406,10 +352,62 @@
             q2Display.textContent = (q2 >= 0 ? '+' : '') + q2.toFixed(1);
         }
 
+        // ============================================================
+        //  p5.js
+        // ============================================================
+
+        function setup() {
+            pixelDensity(1);
+            const canvas = createCanvas(800, 700);
+            canvas.parent('canvas-container');
+            originX = width / 2;
+            originY = height / 2;
+            computeFieldLines();
+            updateInfo();
+
+            // 滑块实时触发重绘
+            q1Slider.addEventListener('input', function() {
+                q1 = parseFloat(this.value);
+                q1Value.textContent = (q1 >= 0 ? '+' : '') + q1.toFixed(1);
+                needRedraw = true;
+                updateInfo();
+            });
+            q2Slider.addEventListener('input', function() {
+                q2 = parseFloat(this.value);
+                q2Value.textContent = (q2 >= 0 ? '+' : '') + q2.toFixed(1);
+                needRedraw = true;
+                updateInfo();
+            });
+            sepSlider.addEventListener('input', function() {
+                separation = parseFloat(this.value);
+                sepValue.textContent = separation;
+                needRedraw = true;
+                updateInfo();
+            });
+            resetBtn.addEventListener('click', function() {
+                q1Slider.value = '5';
+                q2Slider.value = '-5';
+                sepSlider.value = '100';
+                q1 = 5;
+                q2 = -5;
+                separation = 100;
+                q1Value.textContent = '+5.0';
+                q2Value.textContent = '-5.0';
+                sepValue.textContent = '100';
+                needRedraw = true;
+                updateInfo();
+            });
+        }
+
         function draw() {
+            // 需要重绘时重新计算电场线
+            if (needRedraw) {
+                computeFieldLines();
+            }
+
             background('#fafcff');
 
-            // Grid
+            // 网格
             push();
             stroke(220, 225, 235);
             strokeWeight(0.5);
@@ -421,26 +419,25 @@
             }
             pop();
 
-            // Equipotential points (contour approximation)
-            const eqPts = computeEquipotentials();
+            // 等势面（点阵）
+            const eqPts = computeEquipotentialPoints();
             push();
             noFill();
-            stroke(220, 60, 80, 100);
-            strokeWeight(0.8);
+            stroke(220, 60, 80, 80);
+            strokeWeight(1.0);
             for (const pt of eqPts) {
-                if (abs(pt.v) < 0.8) {
-                    ellipse(originX + pt.x, originY + pt.y, 2, 2);
+                if (abs(pt.v) < 0.7) {
+                    ellipse(originX + pt.x, originY + pt.y, 2.5, 2.5);
                 }
             }
             pop();
 
-            // Field lines
+            // 电场线
             push();
             noFill();
             for (const line of fieldLines) {
-                const alpha = 180;
-                stroke(45, 120, 255, alpha);
-                strokeWeight(1.2);
+                stroke(45, 120, 255, 180);
+                strokeWeight(1.3);
                 beginShape();
                 for (const pt of line) {
                     vertex(originX + pt.x, originY + pt.y);
@@ -449,7 +446,7 @@
             }
             pop();
 
-            // Charges
+            // 电荷
             const charges = [
                 [q1, -separation / 2, 0],
                 [q2, separation / 2, 0]
@@ -457,7 +454,7 @@
             for (const [q, cx, cy] of charges) {
                 const px = originX + cx,
                     py = originY + cy;
-                const size = 16 + abs(q) * 1.5;
+                const size = 18 + abs(q) * 1.8;
                 push();
                 noStroke();
                 if (q > 0) {
@@ -469,20 +466,20 @@
                 }
                 ellipse(px, py, size, size);
                 fill(40, 50, 70);
-                textSize(14);
+                textSize(15);
                 textAlign(CENTER, CENTER);
                 text(q > 0 ? '+' : q < 0 ? '−' : '0', px, py + 1);
                 pop();
             }
 
-            // Labels
+            // 标签
             push();
             fill(40, 50, 70);
             noStroke();
             textSize(13);
             textAlign(LEFT, TOP);
-            text('Q₁', originX - separation / 2 + 16, originY - 20);
-            text('Q₂', originX + separation / 2 + 16, originY - 20);
+            text('Q₁', originX - separation / 2 + 18, originY - 22);
+            text('Q₂', originX + separation / 2 + 18, originY - 22);
             pop();
         }
 
