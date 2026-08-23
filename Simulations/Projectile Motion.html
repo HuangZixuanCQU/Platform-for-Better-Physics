@@ -229,11 +229,6 @@
             height: 4px;
             border-radius: 3px;
         }
-        .legend-dot.circle {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
 
         .hint-text {
             font-size: 0.7rem;
@@ -560,24 +555,26 @@
             text('Ground', 6, groundY + 6);
             pop();
 
-            // ----- Launch point -----
+            // ===== 获取当前发射点位置（物理坐标） =====
+            // 发射点物理坐标：x=0, y=heightM
+            // 画布坐标：px = originX + 0 * scaleFactor, py = groundY - heightM * scaleFactor
             const launchX = originX;
             const launchY = groundY - heightM * scaleFactor;
-            const clampedLaunchY = constrain(launchY, 10, groundY - 2);
 
+            // ----- Launch point -----
             push();
             fill(30, 41, 59);
             noStroke();
-            circle(originX, clampedLaunchY, 8);
+            circle(launchX, launchY, 8);
             stroke(30, 41, 59, 80);
             strokeWeight(1.2);
-            line(originX - 14, clampedLaunchY, originX + 14, clampedLaunchY);
-            line(originX, clampedLaunchY - 14, originX, clampedLaunchY + 14);
+            line(launchX - 14, launchY, launchX + 14, launchY);
+            line(launchX, launchY - 14, launchX, launchY + 14);
             fill(30, 41, 59, 180);
             noStroke();
             textSize(11);
             textAlign(LEFT, BOTTOM);
-            text('Launch', originX + 16, clampedLaunchY - 2);
+            text('Launch', launchX + 16, launchY - 2);
             pop();
 
             // ----- Safety parabola (envelope) -----
@@ -622,6 +619,7 @@
                     }
                 }
                 endShape();
+                // Glow effect
                 stroke(45, 120, 255, 40);
                 strokeWeight(6);
                 beginShape();
@@ -670,17 +668,21 @@
                 }
             }
 
-            // ----- Velocity vector -----
+            // ----- 速度矢量（跟随小球位置） -----
             if (showVelocity && ballPos && ballVel) {
                 const vScale = 2.2;
-                const endX = constrain(ballPos.x + ballVel.x * vScale, 0, width);
-                const endY = constrain(ballPos.y + ballVel.y * vScale, 0, height);
+                // 速度矢量起点：小球当前位置
+                const startX = ballPos.x;
+                const startY = ballPos.y;
+                const endX = constrain(startX + ballVel.x * vScale, 0, width);
+                const endY = constrain(startY + ballVel.y * vScale, 0, height);
                 const speedMag = sqrt(ballVel.x * ballVel.x + ballVel.y * ballVel.y) / scaleFactor;
 
                 push();
                 stroke(255, 107, 53);
                 strokeWeight(2.5);
-                line(ballPos.x, ballPos.y, endX, endY);
+                line(startX, startY, endX, endY);
+                // Arrowhead
                 const angleArrow = atan2(ballVel.y, ballVel.x);
                 const headLen = 10;
                 push();
@@ -690,6 +692,7 @@
                 noStroke();
                 triangle(0, 0, -headLen, -headLen * 0.4, -headLen, headLen * 0.4);
                 pop();
+                // Speed label
                 fill(255, 107, 53);
                 noStroke();
                 textSize(12);
@@ -704,11 +707,13 @@
             if (ballPos) {
                 const bx = constrain(ballPos.x, 0, width);
                 const by = constrain(ballPos.y, 0, height);
+                // Shadow
                 push();
                 noStroke();
                 fill(0, 0, 0, 40);
                 ellipse(bx + 3, by + 6, ballRadius * 1.5, ballRadius * 0.5);
                 pop();
+                // Ball
                 push();
                 const grad = drawingContext.createRadialGradient(
                     bx - 4, by - 6, 3,
@@ -751,22 +756,26 @@
             const vy = -v0 * sin(theta);
 
             trailPoints = [];
-            let x = 0,
-                y = heightM;
+            // 物理坐标：x从0开始，y从heightM开始
+            let xPhys = 0;
+            let yPhys = heightM;
             const dt = 0.02;
             let t = 0;
             let maxSteps = 3000;
 
             for (let i = 0; i < maxSteps; i++) {
-                const px = originX + x * scaleFactor;
-                const py = groundY - y * scaleFactor;
+                // 画布坐标
+                const px = originX + xPhys * scaleFactor;
+                const py = groundY - yPhys * scaleFactor;
                 trailPoints.push(createVector(px, py));
 
                 t += dt;
-                x = vx * t;
-                y = heightM + vy * t - 0.5 * gravity * t * t;
+                xPhys = vx * t;
+                yPhys = heightM + vy * t - 0.5 * gravity * t * t;
 
-                if (y < 0) {
+                // 落地检测
+                if (yPhys < 0) {
+                    // 线性插值精确计算落点
                     const lastP = trailPoints[trailPoints.length - 1];
                     const prevP = trailPoints[trailPoints.length - 2] || lastP;
                     if (lastP.y !== prevP.y) {
@@ -776,12 +785,22 @@
                     } else {
                         trailPoints.push(createVector(lastP.x, groundY));
                     }
-                    break;
+                    // 更新最终位置
+                    const finalP = trailPoints[trailPoints.length - 1];
+                    ballPos = finalP.copy();
+                    // 计算落地时的速度（画布坐标）
+                    const vxPix = vx * scaleFactor;
+                    const vyPix = (-vy + gravity * t) * scaleFactor;
+                    ballVel = createVector(vxPix, vyPix);
+                    return;
                 }
+
+                // 超出边界
                 if (px > width + 50 || px < -50) break;
                 if (py < -200 || py > groundY + 200) break;
             }
 
+            // 如果没有落地，使用最后一个点
             if (trailPoints.length > 0) {
                 const last = trailPoints[trailPoints.length - 1];
                 ballPos = last.copy();
@@ -808,6 +827,7 @@
                 if (px > width + 20) break;
                 envelopePoints.push(createVector(px, py));
             }
+            // 负 x 方向
             const negPoints = [];
             for (let i = 1; i <= 30; i++) {
                 const xPhys = -(i / 30) * maxRange * 0.3;
