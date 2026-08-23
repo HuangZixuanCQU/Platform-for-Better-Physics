@@ -57,7 +57,6 @@
         }
         .top-bar .nav-links a:hover { color: #1a5fd0; border-bottom-color: #2d7aff; }
         .top-bar .nav-links a.active { color: #1a5fd0; border-bottom-color: #2d7aff; }
-        
         .lang-btn {
             background: #2d7aff;
             color: white;
@@ -301,7 +300,7 @@
         });
 
         // ============================================================
-        //  ELECTRIC FIELD VISUALISER (p5.js)
+        //  ELECTRIC FIELD VISUALISER
         // ============================================================
 
         let q1 = 5,
@@ -323,89 +322,186 @@
         const q2Display = document.getElementById('q2Display');
         const linesDisplay = document.getElementById('linesDisplay');
 
+        // 电荷位置
+        function getChargePositions() {
+            return [
+                { q: q1, x: -separation / 2, y: 0 },
+                { q: q2, x: separation / 2, y: 0 }
+            ];
+        }
+
+        // 计算电场
         function electricField(px, py) {
             let ex = 0,
                 ey = 0;
-            const charges = [
-                [q1, -separation / 2, 0],
-                [q2, separation / 2, 0]
-            ];
-            for (const [q, cx, cy] of charges) {
-                const dx = px - cx,
-                    dy = py - cy;
+            const charges = getChargePositions();
+            for (const ch of charges) {
+                const dx = px - ch.x,
+                    dy = py - ch.y;
                 const r2 = dx * dx + dy * dy;
-                if (r2 < 10) continue;
+                if (r2 < 1) continue;
                 const r = sqrt(r2);
-                const e = q / r2;
+                const e = ch.q / r2;
                 ex += e * dx / r;
                 ey += e * dy / r;
             }
             return [ex, ey];
         }
 
+        // 计算电势
         function electricPotential(px, py) {
             let v = 0;
-            const charges = [
-                [q1, -separation / 2, 0],
-                [q2, separation / 2, 0]
-            ];
-            for (const [q, cx, cy] of charges) {
-                const dx = px - cx,
-                    dy = py - cy;
+            const charges = getChargePositions();
+            for (const ch of charges) {
+                const dx = px - ch.x,
+                    dy = py - ch.y;
                 const r = sqrt(dx * dx + dy * dy);
-                if (r < 1) return 100 * (q > 0 ? 1 : -1);
-                v += q / r;
+                if (r < 0.5) return ch.q > 0 ? 100 : -100;
+                v += ch.q / r;
             }
             return v;
         }
 
-        function traceFieldLine(startX, startY, steps = 500, stepSize = 1.8) {
+        // ============================================================
+        //  电场线追踪 - 核心改进
+        // ============================================================
+
+        function traceFieldLine(startX, startY, forward = true, maxSteps = 800) {
             const pts = [{ x: startX, y: startY }];
             let x = startX,
                 y = startY;
-            for (let i = 0; i < steps; i++) {
+            const charges = getChargePositions();
+
+            for (let i = 0; i < maxSteps; i++) {
                 const [ex, ey] = electricField(x, y);
                 const mag = sqrt(ex * ex + ey * ey);
                 if (mag < 0.001) break;
-        
-                let currentStep = stepSize;
-                const charges = [
-                    [q1, -separation / 2, 0],
-                    [q2, separation / 2, 0]
-                ];
-                for (const [q, cx, cy] of charges) {
-                    const d = dist(x, y, cx, cy);
-                    if (d < 30) currentStep = min(currentStep, d * 0.08);
-                }
-                currentStep = max(currentStep, 0.3);
 
-                x += currentStep * ex / mag;
-                y += currentStep * ey / mag;
-        
+                // 动态步长：靠近电荷时步长减小
+                let step = 2.5;
+                for (const ch of charges) {
+                    const d = dist(x, y, ch.x, ch.y);
+                    if (d < 40) step = min(step, d * 0.06);
+                }
+                step = max(step, 0.3);
+
+                // 方向：正向或反向
+                const dir = forward ? 1 : -1;
+                x += dir * step * ex / mag;
+                y += dir * step * ey / mag;
+
+                // 边界检查
                 if (x < -380 || x > 380 || y < -380 || y > 380) break;
-        
+
+                // 检查是否到达电荷
                 let reachedCharge = false;
-                for (const [q, cx, cy] of charges) {
-                    if (dist(x, y, cx, cy) < 8) {
+                for (const ch of charges) {
+                    if (dist(x, y, ch.x, ch.y) < 6) {
                         reachedCharge = true;
                         break;
                     }
                 }
                 if (reachedCharge) break;
-        
+
                 pts.push({ x, y });
-                if (pts.length > steps) break;
+                if (pts.length > maxSteps) break;
             }
             return pts;
         }
-        
+
+        // ============================================================
+        //  生成电场线
+        // ============================================================
+
+        function computeFieldLines() {
+            fieldLines = [];
+            const charges = getChargePositions();
+            const nLines = 28;
+
+            // 分离正电荷和负电荷
+            const posCharges = charges.filter(ch => ch.q > 0.1);
+            const negCharges = charges.filter(ch => ch.q < -0.1);
+
+            // 1. 从正电荷发出电场线（正向追踪）
+            for (const ch of posCharges) {
+                for (let i = 0; i < nLines; i++) {
+                    const angle = (TWO_PI / nLines) * i;
+                    const r = 14;
+                    const sx = ch.x + r * cos(angle);
+                    const sy = ch.y + r * sin(angle);
+                    const line = traceFieldLine(sx, sy, true);
+                    if (line.length > 3) fieldLines.push(line);
+                }
+            }
+
+            // 2. 如果没有正电荷，从负电荷反向追踪（从边界开始）
+            if (posCharges.length === 0 && negCharges.length > 0) {
+                const nBoundary = 36;
+                for (let i = 0; i < nBoundary; i++) {
+                    const angle = (TWO_PI / nBoundary) * i;
+                    const radius = 360;
+                    const sx = radius * cos(angle);
+                    const sy = radius * sin(angle);
+                    // 从边界正向追踪，指向负电荷
+                    const line = traceFieldLine(sx, sy, true);
+                    if (line.length > 3) fieldLines.push(line);
+                }
+            }
+
+            // 3. 如果有正电荷也有负电荷，从边界补充线（显示远处场）
+            if (posCharges.length > 0 && negCharges.length > 0) {
+                const nExtra = 20;
+                for (let i = 0; i < nExtra; i++) {
+                    const angle = (TWO_PI / nExtra) * i + 0.05;
+                    const radius = 360;
+                    const sx = radius * cos(angle);
+                    const sy = radius * sin(angle);
+                    const line = traceFieldLine(sx, sy, true);
+                    if (line.length > 3) fieldLines.push(line);
+                }
+            }
+
+            // 4. 同号正电荷：从边界补充线
+            if (posCharges.length >= 2 && negCharges.length === 0) {
+                const nExtra = 24;
+                for (let i = 0; i < nExtra; i++) {
+                    const angle = (TWO_PI / nExtra) * i + 0.1;
+                    const radius = 360;
+                    const sx = radius * cos(angle);
+                    const sy = radius * sin(angle);
+                    const line = traceFieldLine(sx, sy, true);
+                    if (line.length > 3) fieldLines.push(line);
+                }
+            }
+
+            // 5. 同号负电荷：额外从边界补充（确保覆盖）
+            if (posCharges.length === 0 && negCharges.length >= 2) {
+                const nExtra = 32;
+                for (let i = 0; i < nExtra; i++) {
+                    const angle = (TWO_PI / nExtra) * i + 0.1;
+                    const radius = 360;
+                    const sx = radius * cos(angle);
+                    const sy = radius * sin(angle);
+                    const line = traceFieldLine(sx, sy, true);
+                    if (line.length > 3) fieldLines.push(line);
+                }
+            }
+
+            linesDisplay.textContent = fieldLines.length;
+            needRedraw = false;
+        }
+
+        // ============================================================
+        //  等势面点
+        // ============================================================
+
         function computeEquipotentialPoints() {
             const pts = [];
-            const step = 5;
-            for (let x = -320; x <= 320; x += step) {
-                for (let y = -320; y <= 320; y += step) {
+            const step = 6;
+            for (let x = -340; x <= 340; x += step) {
+                for (let y = -340; y <= 340; y += step) {
                     const v = electricPotential(x, y);
-                    if (abs(v) < 6 && abs(v) > 0.15) {
+                    if (abs(v) < 5 && abs(v) > 0.1) {
                         pts.push({ x, y, v });
                     }
                 }
@@ -413,76 +509,34 @@
             return pts;
         }
 
-        function computeFieldLines() {
-            fieldLines = [];
-            const charges = [
-                [q1, -separation / 2, 0],
-                [q2, separation / 2, 0]
-            ];
-            const nLines = 32;
-        
-            const positiveCharges = charges.filter(([q]) => q > 0.1);
-            const negativeCharges = charges.filter(([q]) => q < -0.1);
-        
-            for (const [q, cx, cy] of positiveCharges) {
-                for (let i = 0; i < nLines; i++) {
-                    const angle = (TWO_PI / nLines) * i;
-                    const r = 15;
-                    const sx = cx + r * cos(angle);
-                    const sy = cy + r * sin(angle);
-                    const line = traceFieldLine(sx, sy);
-                    if (line.length > 5) fieldLines.push(line);
-                }
-            }
-        
-            if (positiveCharges.length === 0 && negativeCharges.length > 0) {
-                const nBoundaryPoints = 36;
-                for (let i = 0; i < nBoundaryPoints; i++) {
-                    const angle = (TWO_PI / nBoundaryPoints) * i;
-                    const radius = 350;
-                    const sx = radius * cos(angle);
-                    const sy = radius * sin(angle);
-                    const line = traceFieldLine(sx, sy);
-                    if (line.length > 5) fieldLines.push(line);
-                }
-            }
-        
-            if (positiveCharges.length > 0 && negativeCharges.length > 0) {
-                for (let i = 0; i < 16; i++) {
-                    const angle = (TWO_PI / 16) * i + 0.05;
-                    const radius = 350;
-                    const sx = radius * cos(angle);
-                    const sy = radius * sin(angle);
-                    const line = traceFieldLine(sx, sy);
-                    if (line.length > 5) fieldLines.push(line);
-                }
-            }
-        
-            if (positiveCharges.length >= 2 && negativeCharges.length === 0) {
-                for (let i = 0; i < 20; i++) {
-                    const angle = (TWO_PI / 20) * i + 0.1;
-                    const radius = 350;
-                    const sx = radius * cos(angle);
-                    const sy = radius * sin(angle);
-                    const line = traceFieldLine(sx, sy);
-                    if (line.length > 5) fieldLines.push(line);
-                }
-            }
-        
-            linesDisplay.textContent = fieldLines.length;
-            needRedraw = false;
-        }
-        
+        // ============================================================
+        //  UI 更新
+        // ============================================================
+
         function updateInfo() {
-            const config = (q1 > 0 && q2 < 0) ? 'Dipole' :
-                (q1 < 0 && q2 > 0) ? 'Dipole (rev)' :
-                (q1 > 0 && q2 > 0) ? 'Same sign' :
-                (q1 < 0 && q2 < 0) ? 'Same sign' :
-                (q1 === 0 || q2 === 0) ? 'Single charge' : 'Custom';
+            const charges = getChargePositions();
+            const hasPos = charges.some(ch => ch.q > 0.1);
+            const hasNeg = charges.some(ch => ch.q < -0.1);
+
+            let config = 'Custom';
+            if (hasPos && hasNeg) {
+                config = (q1 > 0 && q2 < 0) || (q1 < 0 && q2 > 0) ? 'Dipole' : 'Dipole (mixed)';
+            } else if (hasPos && !hasNeg) {
+                config = 'Same sign (positive)';
+            } else if (!hasPos && hasNeg) {
+                config = 'Same sign (negative)';
+            } else {
+                config = 'No charges';
+            }
+
             configDisplay.textContent = config;
             q1Display.textContent = (q1 >= 0 ? '+' : '') + q1.toFixed(1);
             q2Display.textContent = (q2 >= 0 ? '+' : '') + q2.toFixed(1);
         }
+
+        // ============================================================
+        //  p5.js
+        // ============================================================
 
         function setup() {
             pixelDensity(1);
@@ -533,6 +587,7 @@
 
             background('#fafcff');
 
+            // 网格
             push();
             stroke(220, 225, 235);
             strokeWeight(0.5);
@@ -544,23 +599,26 @@
             }
             pop();
 
+            // 等势面
             const eqPts = computeEquipotentialPoints();
             push();
             noFill();
-            stroke(220, 60, 80, 80);
-            strokeWeight(1.0);
+            stroke(220, 60, 80, 70);
+            strokeWeight(1.2);
             for (const pt of eqPts) {
-                if (abs(pt.v) < 0.7) {
-                    ellipse(originX + pt.x, originY + pt.y, 2.5, 2.5);
+                if (abs(pt.v) < 0.5) {
+                    ellipse(originX + pt.x, originY + pt.y, 3, 3);
                 }
             }
             pop();
 
+            // 电场线
             push();
             noFill();
             for (const line of fieldLines) {
-                stroke(45, 120, 255, 180);
-                strokeWeight(1.3);
+                if (line.length < 2) continue;
+                stroke(45, 120, 255, 160);
+                strokeWeight(1.4);
                 beginShape();
                 for (const pt of line) {
                     vertex(originX + pt.x, originY + pt.y);
@@ -569,19 +627,17 @@
             }
             pop();
 
-            const charges = [
-                [q1, -separation / 2, 0],
-                [q2, separation / 2, 0]
-            ];
-            for (const [q, cx, cy] of charges) {
-                const px = originX + cx,
-                    py = originY + cy;
-                const size = 18 + abs(q) * 1.8;
+            // 电荷
+            const charges = getChargePositions();
+            for (const ch of charges) {
+                const px = originX + ch.x,
+                    py = originY + ch.y;
+                const size = 18 + abs(ch.q) * 1.8;
                 push();
                 noStroke();
-                if (q > 0) {
+                if (ch.q > 0) {
                     fill(255, 193, 7);
-                } else if (q < 0) {
+                } else if (ch.q < 0) {
                     fill(40, 167, 69);
                 } else {
                     fill(200, 200, 200);
@@ -590,17 +646,23 @@
                 fill(40, 50, 70);
                 textSize(15);
                 textAlign(CENTER, CENTER);
-                text(q > 0 ? '+' : q < 0 ? '−' : '0', px, py + 1);
+                text(ch.q > 0 ? '+' : ch.q < 0 ? '−' : '0', px, py + 1);
                 pop();
             }
 
+            // 标签
             push();
             fill(40, 50, 70);
             noStroke();
             textSize(13);
             textAlign(LEFT, TOP);
-            text('Q₁', originX - separation / 2 + 18, originY - 22);
-            text('Q₂', originX + separation / 2 + 18, originY - 22);
+            const charges2 = getChargePositions();
+            if (charges2.length >= 1) {
+                text('Q₁', originX + charges2[0].x + 18, originY + charges2[0].y - 22);
+            }
+            if (charges2.length >= 2) {
+                text('Q₂', originX + charges2[1].x + 18, originY + charges2[1].y - 22);
+            }
             pop();
         }
 
