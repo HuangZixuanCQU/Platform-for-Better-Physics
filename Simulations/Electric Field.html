@@ -367,7 +367,7 @@
                 const [ex, ey] = electricField(x, y);
                 const mag = sqrt(ex * ex + ey * ey);
                 if (mag < 0.001) break;
-       
+        
                 let currentStep = stepSize;
                 const charges = [
                     [q1, -separation / 2, 0],
@@ -378,8 +378,10 @@
                     if (d < 30) currentStep = min(currentStep, d * 0.08);
                 }
                 currentStep = max(currentStep, 0.3);
+
                 x += currentStep * ex / mag;
                 y += currentStep * ey / mag;
+        
                 if (x < -380 || x > 380 || y < -380 || y > 380) break;
         
                 let reachedCharge = false;
@@ -390,8 +392,8 @@
                     }
                 }
                 if (reachedCharge) break;
+        
                 pts.push({ x, y });
-       
                 if (pts.length > steps) break;
             }
             return pts;
@@ -418,25 +420,23 @@
                 [q2, separation / 2, 0]
             ];
             const nLines = 32;
-
-         
-            for (const [q, cx, cy] of charges) {
-                if (q > 0.1) {
-                    for (let i = 0; i < nLines; i++) {
-                        const angle = (TWO_PI / nLines) * i;
-                        const r = 15;
-                        const sx = cx + r * cos(angle);
-                        const sy = cy + r * sin(angle);
-                        const line = traceFieldLine(sx, sy);
-                        if (line.length > 5) fieldLines.push(line);
-                    }
+        
+            const positiveCharges = charges.filter(([q]) => q > 0.1);
+            const negativeCharges = charges.filter(([q]) => q < -0.1);
+        
+            for (const [q, cx, cy] of positiveCharges) {
+                for (let i = 0; i < nLines; i++) {
+                    const angle = (TWO_PI / nLines) * i;
+                    const r = 15;
+                    const sx = cx + r * cos(angle);
+                    const sy = cy + r * sin(angle);
+                    const line = traceFieldLine(sx, sy);
+                    if (line.length > 5) fieldLines.push(line);
                 }
             }
-
-            const hasPositive = charges.some(([q]) => q > 0.1);
-            if (!hasPositive) {
-               
-                const nBoundaryPoints = 24;
+        
+            if (positiveCharges.length === 0 && negativeCharges.length > 0) {
+                const nBoundaryPoints = 36;
                 for (let i = 0; i < nBoundaryPoints; i++) {
                     const angle = (TWO_PI / nBoundaryPoints) * i;
                     const radius = 350;
@@ -446,13 +446,10 @@
                     if (line.length > 5) fieldLines.push(line);
                 }
             }
-
-            
-            const positiveCharges = charges.filter(([q]) => q > 0.1);
-            if (positiveCharges.length >= 2) {
-                
+        
+            if (positiveCharges.length > 0 && negativeCharges.length > 0) {
                 for (let i = 0; i < 16; i++) {
-                    const angle = (TWO_PI / 16) * i + 0.1;
+                    const angle = (TWO_PI / 16) * i + 0.05;
                     const radius = 350;
                     const sx = radius * cos(angle);
                     const sy = radius * sin(angle);
@@ -460,7 +457,18 @@
                     if (line.length > 5) fieldLines.push(line);
                 }
             }
-
+        
+            if (positiveCharges.length >= 2 && negativeCharges.length === 0) {
+                for (let i = 0; i < 20; i++) {
+                    const angle = (TWO_PI / 20) * i + 0.1;
+                    const radius = 350;
+                    const sx = radius * cos(angle);
+                    const sy = radius * sin(angle);
+                    const line = traceFieldLine(sx, sy);
+                    if (line.length > 5) fieldLines.push(line);
+                }
+            }
+        
             linesDisplay.textContent = fieldLines.length;
             needRedraw = false;
         }
