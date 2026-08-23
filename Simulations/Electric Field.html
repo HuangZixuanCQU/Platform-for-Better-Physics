@@ -366,49 +366,52 @@
         //  电场线追踪 - 核心改进
         // ============================================================
 
-        function traceFieldLine(startX, startY, forward = true, maxSteps = 800) {
+        function traceFieldLine(startX, startY, forward = true, maxSteps = 600) {
             const pts = [{ x: startX, y: startY }];
             let x = startX,
                 y = startY;
             const charges = getChargePositions();
-
+        
             for (let i = 0; i < maxSteps; i++) {
                 const [ex, ey] = electricField(x, y);
                 const mag = sqrt(ex * ex + ey * ey);
+        
+                // 如果电场太弱，停止追踪
                 if (mag < 0.001) break;
-
-                // 动态步长：靠近电荷时步长减小
-                let step = 2.5;
+        
+                // 动态步长
+                let step = 2.8;
                 for (const ch of charges) {
                     const d = dist(x, y, ch.x, ch.y);
-                    if (d < 40) step = min(step, d * 0.06);
+                    if (d < 50) step = min(step, d * 0.06);
                 }
-                step = max(step, 0.3);
-
-                // 方向：正向或反向
+                step = max(step, 0.4);
+        
+                // 追踪方向
                 const dir = forward ? 1 : -1;
                 x += dir * step * ex / mag;
                 y += dir * step * ey / mag;
-
+        
                 // 边界检查
-                if (x < -380 || x > 380 || y < -380 || y > 380) break;
-
+                if (x < -390 || x > 390 || y < -390 || y > 390) break;
+        
                 // 检查是否到达电荷
                 let reachedCharge = false;
                 for (const ch of charges) {
-                    if (dist(x, y, ch.x, ch.y) < 6) {
+                    if (dist(x, y, ch.x, ch.y) < 5) {
                         reachedCharge = true;
                         break;
                     }
                 }
                 if (reachedCharge) break;
-
+        
                 pts.push({ x, y });
+        
+                // 防止无限循环
                 if (pts.length > maxSteps) break;
             }
             return pts;
         }
-
         // ============================================================
         //  生成电场线
         // ============================================================
@@ -416,81 +419,64 @@
         function computeFieldLines() {
             fieldLines = [];
             const charges = getChargePositions();
-            const nLines = 28;
-
-            // 分离正电荷和负电荷
+            const nLines = 32;
+        
+            // 分离正负电荷
             const posCharges = charges.filter(ch => ch.q > 0.1);
             const negCharges = charges.filter(ch => ch.q < -0.1);
-
-            // 1. 从正电荷发出电场线（正向追踪）
+        
+            // ===== 1. 从正电荷发出电场线 =====
             for (const ch of posCharges) {
                 for (let i = 0; i < nLines; i++) {
                     const angle = (TWO_PI / nLines) * i;
-                    const r = 14;
+                    const r = 16;
                     const sx = ch.x + r * cos(angle);
                     const sy = ch.y + r * sin(angle);
-                    const line = traceFieldLine(sx, sy, true);
+                    const line = traceFieldLine(sx, sy, true, 600);
                     if (line.length > 3) fieldLines.push(line);
                 }
             }
-
-            // 2. 如果没有正电荷，从负电荷反向追踪（从边界开始）
-            if (posCharges.length === 0 && negCharges.length > 0) {
-                const nBoundary = 36;
-                for (let i = 0; i < nBoundary; i++) {
-                    const angle = (TWO_PI / nBoundary) * i;
-                    const radius = 360;
-                    const sx = radius * cos(angle);
-                    const sy = radius * sin(angle);
-                    // 从边界正向追踪，指向负电荷
-                    const line = traceFieldLine(sx, sy, true);
+        
+            // ===== 2. 从负电荷反向发出（从负电荷周围向外追踪）=====
+            // 这可以确保负电荷周围也有线
+            for (const ch of negCharges) {
+                for (let i = 0; i < nLines; i++) {
+                    const angle = (TWO_PI / nLines) * i;
+                    const r = 16;
+                    const sx = ch.x + r * cos(angle);
+                    const sy = ch.y + r * sin(angle);
+                    // 反向追踪：从负电荷向外
+                    const line = traceFieldLine(sx, sy, false, 600);
                     if (line.length > 3) fieldLines.push(line);
                 }
             }
-
-            // 3. 如果有正电荷也有负电荷，从边界补充线（显示远处场）
-            if (posCharges.length > 0 && negCharges.length > 0) {
-                const nExtra = 20;
-                for (let i = 0; i < nExtra; i++) {
-                    const angle = (TWO_PI / nExtra) * i + 0.05;
-                    const radius = 360;
-                    const sx = radius * cos(angle);
-                    const sy = radius * sin(angle);
-                    const line = traceFieldLine(sx, sy, true);
-                    if (line.length > 3) fieldLines.push(line);
-                }
+        
+            // ===== 3. 从边界全覆盖（无论电荷配置如何）=====
+            // 从画布边界均匀分布的点出发，正向追踪
+            const nBoundary = 48;
+            for (let i = 0; i < nBoundary; i++) {
+                const angle = (TWO_PI / nBoundary) * i;
+                const radius = 370;
+                const sx = radius * cos(angle);
+                const sy = radius * sin(angle);
+                const line = traceFieldLine(sx, sy, true, 800);
+                if (line.length > 3) fieldLines.push(line);
             }
-
-            // 4. 同号正电荷：从边界补充线
-            if (posCharges.length >= 2 && negCharges.length === 0) {
-                const nExtra = 24;
-                for (let i = 0; i < nExtra; i++) {
-                    const angle = (TWO_PI / nExtra) * i + 0.1;
-                    const radius = 360;
-                    const sx = radius * cos(angle);
-                    const sy = radius * sin(angle);
-                    const line = traceFieldLine(sx, sy, true);
-                    if (line.length > 3) fieldLines.push(line);
-                }
+        
+            // ===== 4. 额外：从边界内部一圈再发一次（增加密度）=====
+            const nInner = 24;
+            for (let i = 0; i < nInner; i++) {
+                const angle = (TWO_PI / nInner) * i + 0.1;
+                const radius = 280;
+                const sx = radius * cos(angle);
+                const sy = radius * sin(angle);
+                const line = traceFieldLine(sx, sy, true, 600);
+                if (line.length > 3) fieldLines.push(line);
             }
-
-            // 5. 同号负电荷：额外从边界补充（确保覆盖）
-            if (posCharges.length === 0 && negCharges.length >= 2) {
-                const nExtra = 32;
-                for (let i = 0; i < nExtra; i++) {
-                    const angle = (TWO_PI / nExtra) * i + 0.1;
-                    const radius = 360;
-                    const sx = radius * cos(angle);
-                    const sy = radius * sin(angle);
-                    const line = traceFieldLine(sx, sy, true);
-                    if (line.length > 3) fieldLines.push(line);
-                }
-            }
-
+        
             linesDisplay.textContent = fieldLines.length;
             needRedraw = false;
         }
-
         // ============================================================
         //  等势面点
         // ============================================================
