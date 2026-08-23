@@ -57,6 +57,25 @@
         }
         .top-bar .nav-links a:hover { color: #1a5fd0; border-bottom-color: #2d7aff; }
         .top-bar .nav-links a.active { color: #1a5fd0; border-bottom-color: #2d7aff; }
+        .top-bar .nav-links a.experiment {
+            color: #f59e0b;
+        }
+        .top-bar .nav-links a.experiment:hover {
+            color: #d97706;
+        }
+        .lang-btn {
+            background: #2d7aff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            font-family: inherit;
+        }
+        .lang-btn:hover { background: #1a5fd0; }
 
         .sim-title { margin-bottom: 16px; }
         .sim-title h1 { font-size: 26px; font-weight: 600; }
@@ -159,65 +178,135 @@
         <div class="top-bar">
             <div class="logo">Physics<span>Lab</span></div>
             <div class="nav-links">
-                <a href="../index.html">Home</a>
-                <a href="../share.html">Resources</a>
-                <a href="../simulations.html" class="active">Simulations</a>
+                <a href="../index.html" data-key="nav_home">Home</a>
+                <a href="../share.html" data-key="nav_resources">Resources</a>
+                <a href="../simulations.html" class="active" data-key="nav_simulations">Simulations</a>
+                <a href="../experiment%20choosing.html" class="experiment" data-key="nav_experiment">AI for Experiment</a>
+                <button id="langToggle" class="lang-btn">中文</button>
             </div>
         </div>
 
         <div class="sim-title">
-            <h1>Electric <span>Field</span> Visualiser</h1>
-            <p>p5.js · Real-time field lines and equipotential surfaces</p>
+            <h1 data-key="title">Electric <span>Field</span> Visualiser</h1>
+            <p data-key="subtitle">p5.js · Real-time field lines and equipotential surfaces</p>
         </div>
 
         <div id="canvas-container"></div>
 
         <div class="controls">
             <div class="control-group">
-                <label>Q₁</label>
+                <label data-key="label_q1">Q₁</label>
                 <input type="range" id="q1Slider" min="-10" max="10" value="5" step="0.5">
                 <span class="value" id="q1Value">+5.0</span>
             </div>
             <div class="control-group">
-                <label>Q₂</label>
+                <label data-key="label_q2">Q₂</label>
                 <input type="range" id="q2Slider" min="-10" max="10" value="-5" step="0.5">
                 <span class="value" id="q2Value">-5.0</span>
             </div>
             <div class="control-group">
-                <label>Sep</label>
+                <label data-key="label_sep">Sep</label>
                 <input type="range" id="sepSlider" min="40" max="200" value="100" step="2">
                 <span class="value" id="sepValue">100</span>
             </div>
             <div class="btn-group">
-                <button class="btn btn-primary" id="resetBtn">Reset Dipole</button>
+                <button class="btn btn-primary" id="resetBtn" data-key="btn_reset">Reset Dipole</button>
             </div>
         </div>
 
         <div class="info-panel">
             <div class="info-item">
-                <div class="label">Configuration</div>
+                <div class="label" data-key="info_config">Configuration</div>
                 <div class="val" id="configDisplay">Dipole</div>
             </div>
             <div class="info-item">
-                <div class="label">Q₁</div>
+                <div class="label" data-key="info_q1">Q₁</div>
                 <div class="val" id="q1Display">+5.0</div>
             </div>
             <div class="info-item">
-                <div class="label">Q₂</div>
+                <div class="label" data-key="info_q2">Q₂</div>
                 <div class="val" id="q2Display">-5.0</div>
             </div>
             <div class="info-item">
-                <div class="label">Field Lines</div>
+                <div class="label" data-key="info_lines">Field Lines</div>
                 <div class="val" id="linesDisplay">24</div>
             </div>
         </div>
 
-        <div class="footer-note">PhysicsLab · p5.js · 2026</div>
+        <div class="footer-note" data-key="footer">PhysicsLab · p5.js · 2026</div>
     </div>
 
     <script>
         // ============================================================
-        //  ELECTRIC FIELD VISUALISER (p5.js) - 实时重绘
+        //  LANGUAGE SUPPORT
+        // ============================================================
+        const translations = {
+            zh: {
+                nav_home: '首页',
+                nav_resources: '资料库',
+                nav_simulations: '仿真',
+                nav_experiment: 'AI 实验分析',
+                title: '电场可视化',
+                subtitle: 'p5.js · 实时电场线和等势面',
+                label_q1: '电荷₁',
+                label_q2: '电荷₂',
+                label_sep: '间距',
+                btn_reset: '重置偶极子',
+                info_config: '配置',
+                info_q1: '电荷₁',
+                info_q2: '电荷₂',
+                info_lines: '电场线',
+                footer: 'PhysicsLab · p5.js · 2026'
+            },
+            en: {
+                nav_home: 'Home',
+                nav_resources: 'Resources',
+                nav_simulations: 'Simulations',
+                nav_experiment: 'AI for Experiment',
+                title: 'Electric Field Visualiser',
+                subtitle: 'p5.js · Real-time field lines and equipotential surfaces',
+                label_q1: 'Q₁',
+                label_q2: 'Q₂',
+                label_sep: 'Sep',
+                btn_reset: 'Reset Dipole',
+                info_config: 'Configuration',
+                info_q1: 'Q₁',
+                info_q2: 'Q₂',
+                info_lines: 'Field Lines',
+                footer: 'PhysicsLab · p5.js · 2026'
+            }
+        };
+
+        let currentLang = 'en';
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.dataset.key;
+                if (t[key] !== undefined) {
+                    el.textContent = t[key];
+                }
+            });
+            const toggleBtn = document.getElementById('langToggle');
+            if (toggleBtn) toggleBtn.textContent = lang === 'zh' ? 'English' : '中文';
+            localStorage.setItem('preferredLang', lang);
+            document.documentElement.lang = lang;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('langToggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    switchLanguage(currentLang === 'zh' ? 'en' : 'zh');
+                });
+            }
+            const savedLang = localStorage.getItem('preferredLang') || 'en';
+            switchLanguage(savedLang);
+        });
+
+        // ============================================================
+        //  ELECTRIC FIELD VISUALISER (p5.js)
         // ============================================================
 
         let q1 = 5,
@@ -238,10 +327,6 @@
         const q1Display = document.getElementById('q1Display');
         const q2Display = document.getElementById('q2Display');
         const linesDisplay = document.getElementById('linesDisplay');
-
-        // ============================================================
-        //  PHYSICS
-        // ============================================================
 
         function electricField(px, py) {
             let ex = 0,
@@ -352,10 +437,6 @@
             q2Display.textContent = (q2 >= 0 ? '+' : '') + q2.toFixed(1);
         }
 
-        // ============================================================
-        //  p5.js
-        // ============================================================
-
         function setup() {
             pixelDensity(1);
             const canvas = createCanvas(800, 700);
@@ -365,7 +446,6 @@
             computeFieldLines();
             updateInfo();
 
-            // 滑块实时触发重绘
             q1Slider.addEventListener('input', function() {
                 q1 = parseFloat(this.value);
                 q1Value.textContent = (q1 >= 0 ? '+' : '') + q1.toFixed(1);
@@ -400,14 +480,12 @@
         }
 
         function draw() {
-            // 需要重绘时重新计算电场线
             if (needRedraw) {
                 computeFieldLines();
             }
 
             background('#fafcff');
 
-            // 网格
             push();
             stroke(220, 225, 235);
             strokeWeight(0.5);
@@ -419,7 +497,6 @@
             }
             pop();
 
-            // 等势面（点阵）
             const eqPts = computeEquipotentialPoints();
             push();
             noFill();
@@ -432,7 +509,6 @@
             }
             pop();
 
-            // 电场线
             push();
             noFill();
             for (const line of fieldLines) {
@@ -446,7 +522,6 @@
             }
             pop();
 
-            // 电荷
             const charges = [
                 [q1, -separation / 2, 0],
                 [q2, separation / 2, 0]
@@ -472,7 +547,6 @@
                 pop();
             }
 
-            // 标签
             push();
             fill(40, 50, 70);
             noStroke();
