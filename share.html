@@ -5,16 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PhysicsLab · Resources</title>
     <style>
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 20px;
             background: #f5f7fa;
+            color: #1a2332;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
-
-        /* ===== NAVIGATION BAR ===== */
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
         .top-bar {
             display: flex;
             flex-wrap: wrap;
@@ -22,21 +31,15 @@
             align-items: center;
             padding: 6px 0 16px;
             border-bottom: 2px solid #e6edf4;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
-        .top-bar .logo {
-            font-size: 22px;
-            font-weight: 600;
-            color: #0a1a2b;
-            letter-spacing: -0.3px;
-        }
-        .top-bar .logo span {
-            color: #2d7aff;
-        }
+        .top-bar .logo { font-size: 22px; font-weight: 600; color: #0a1a2b; }
+        .top-bar .logo span { color: #2d7aff; }
         .top-bar .nav-links {
             display: flex;
             gap: 28px;
             font-size: 15px;
+            align-items: center;
         }
         .top-bar .nav-links a {
             color: #2c3e50;
@@ -46,33 +49,27 @@
             border-bottom: 2px solid transparent;
             transition: 0.15s;
         }
-        .top-bar .nav-links a:hover {
-            color: #1a5fd0;
-            border-bottom-color: #2d7aff;
+        .top-bar .nav-links a:hover { color: #1a5fd0; border-bottom-color: #2d7aff; }
+        .top-bar .nav-links a.active { color: #1a5fd0; border-bottom-color: #2d7aff; }
+        .lang-btn {
+            background: #2d7aff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            font-family: inherit;
         }
-        .top-bar .nav-links a.active {
-            color: #1a5fd0;
-            border-bottom-color: #2d7aff;
-        }
+        .lang-btn:hover { background: #1a5fd0; }
 
-        /* ===== PAGE HEADER ===== */
-        .page-header {
-            margin-bottom: 24px;
-        }
-        .page-header h1 {
-            font-size: 30px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        .page-header h1 span {
-            color: #2d7aff;
-        }
-        .page-header p {
-            color: #4a5a6e;
-            font-size: 16px;
-        }
+        .page-header { margin-bottom: 24px; }
+        .page-header h1 { font-size: 30px; font-weight: 600; margin-bottom: 4px; }
+        .page-header h1 span { color: #2d7aff; }
+        .page-header p { color: #4a5a6e; font-size: 16px; }
 
-        /* ===== STATS BAR ===== */
         .stats-bar {
             display: flex;
             gap: 24px;
@@ -83,7 +80,6 @@
         }
         .stats-bar span { background: white; padding: 4px 16px; border-radius: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 
-        /* ===== TOOLBAR ===== */
         .toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -104,7 +100,6 @@
             font-family: inherit;
         }
         .search-box:focus { border-color: #2d7aff; }
-        .search-box::placeholder { color: #9aa8b8; }
         .filter-group {
             display: flex;
             flex-wrap: wrap;
@@ -121,29 +116,15 @@
             font-family: inherit;
             color: #4a5a6e;
         }
-        .filter-btn:hover {
-            border-color: #2d7aff;
-            color: #1a2332;
-        }
-        .filter-btn.active {
-            background: #2d7aff;
-            border-color: #2d7aff;
-            color: white;
-        }
-        .filter-btn .count {
-            font-size: 11px;
-            opacity: 0.7;
-            margin-left: 4px;
-        }
+        .filter-btn:hover { border-color: #2d7aff; color: #1a2332; }
+        .filter-btn.active { background: #2d7aff; border-color: #2d7aff; color: white; }
+        .filter-btn .count { font-size: 11px; opacity: 0.7; margin-left: 4px; }
 
-        /* ===== FLAT FILE LIST ===== */
-        #file-container {
-            margin-top: 20px;
-        }
         .file-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 14px;
+            margin-top: 20px;
         }
         .file-card {
             background: white;
@@ -161,9 +142,7 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 16px rgba(45,122,255,0.10);
         }
-        .file-card.hidden {
-            display: none;
-        }
+        .file-card.hidden { display: none; }
         .file-card .ext {
             font-size: 26px;
             font-weight: 300;
@@ -186,10 +165,6 @@
             font-family: 'Courier New', monospace;
             margin-bottom: 6px;
             word-break: break-all;
-        }
-        .file-card .path .separator {
-            color: #c0c8d4;
-            margin: 0 2px;
         }
         .file-card .tag {
             font-size: 10px;
@@ -216,7 +191,7 @@
         }
         .file-card .download:hover { background: #1a5fd0; }
 
-        .loading, .error, .no-results {
+        .loading, .error, .no-results, .empty-cat {
             text-align: center;
             padding: 60px 0;
             color: #6b7a8f;
@@ -224,7 +199,6 @@
         .error { color: #d1453b; }
         .no-results { display: none; }
 
-        /* ===== FOOTER ===== */
         .footer-note {
             margin-top: 48px;
             padding-top: 16px;
@@ -235,74 +209,122 @@
         }
 
         @media (max-width: 640px) {
-            .top-bar {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-            .top-bar .nav-links {
-                gap: 18px;
-                flex-wrap: wrap;
-            }
-            .file-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            .toolbar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .filter-group {
-                justify-content: center;
-            }
+            .top-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .top-bar .nav-links { gap: 18px; flex-wrap: wrap; }
+            .file-grid { grid-template-columns: 1fr 1fr; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .filter-group { justify-content: center; }
         }
     </style>
 </head>
 <body>
 
-<!-- ===== NAVIGATION ===== -->
-<div class="top-bar">
-    <div class="logo">Physics<span>Lab</span></div>
-    <div class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="share.html" class="active">Resources</a>
-        <a href="simulations.html">Simulations</a>
+<div class="container">
+    <!-- Navigation -->
+    <div class="top-bar">
+        <div class="logo">Physics<span>Lab</span></div>
+        <div class="nav-links">
+            <a href="index.html" data-key="nav_home">Home</a>
+            <a href="share.html" class="active" data-key="nav_resources">Resources</a>
+            <a href="simulations.html" data-key="nav_simulations">Simulations</a>
+            <button id="langToggle" class="lang-btn">中文</button>
+        </div>
     </div>
-</div>
 
-<!-- ===== HEADER ===== -->
-<div class="page-header">
-    <h1>Learning <span>Resources</span></h1>
-    <p>All files are shown with their full folder path — browse by category using the filters below.</p>
-</div>
+    <!-- Header -->
+    <div class="page-header">
+        <h1 data-key="resources_title">Learning <span>Resources</span></h1>
+        <p data-key="resources_sub">Lecture notes, problem sets, and reference materials — organised by topic.</p>
+    </div>
 
-<!-- ===== STATS ===== -->
-<div class="stats-bar" id="statsBar">
-    <span><span id="totalCats">0</span> categories</span>
-    <span><span id="totalFiles">0</span> files</span>
-    <span><span id="totalSize">0</span></span>
-</div>
+    <!-- Stats -->
+    <div class="stats-bar" id="statsBar">
+        <span><span id="totalCats">0</span> <span data-key="stats_categories">categories</span></span>
+        <span><span id="totalFiles">0</span> <span data-key="stats_files">files</span></span>
+        <span><span id="totalSize">0</span></span>
+    </div>
 
-<!-- ===== TOOLBAR ===== -->
-<div class="toolbar">
-    <input class="search-box" id="searchInput" type="text" placeholder="Search by filename or path..." />
-    <div class="filter-group" id="filterGroup"></div>
-</div>
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <input class="search-box" id="searchInput" type="text" data-key="resources_search" placeholder="Search by filename or path..." />
+        <div class="filter-group" id="filterGroup"></div>
+    </div>
 
-<!-- ===== FILE LIST ===== -->
-<div id="file-container">
-    <div class="loading">Loading resources...</div>
-</div>
-<div class="no-results" id="noResults">No files match your search or filter.</div>
+    <!-- File list -->
+    <div id="file-container">
+        <div class="loading" data-key="resources_loading">Loading resources...</div>
+    </div>
+    <div class="no-results" id="noResults" data-key="resources_no_results">No files match your search or filter.</div>
 
-<!-- ===== FOOTER ===== -->
-<div class="footer-note">
-    PhysicsLab · GitHub Pages · 2026
+    <!-- Footer -->
+    <div class="footer-note" data-key="footer">PhysicsLab · built with GitHub Pages · 2026</div>
 </div>
 
 <script>
-    // ================================================================
-    //  CONFIGURATION
-    // ================================================================
+    // ============================================================
+    //  LANGUAGE SUPPORT
+    // ============================================================
+    const translations = {
+        zh: {
+            nav_home: '首页',
+            nav_resources: '资料库',
+            nav_simulations: '仿真',
+            resources_title: '学习资料',
+            resources_sub: '按主题分类的讲义、习题和参考资料',
+            resources_search: '搜索文件名或路径...',
+            resources_loading: '加载资料中...',
+            resources_no_results: '没有匹配的文件。',
+            stats_categories: '个分类',
+            stats_files: '个文件',
+            footer: 'PhysicsLab · 基于 GitHub Pages 构建 · 2026'
+        },
+        en: {
+            nav_home: 'Home',
+            nav_resources: 'Resources',
+            nav_simulations: 'Simulations',
+            resources_title: 'Learning Resources',
+            resources_sub: 'Lecture notes, problem sets, and reference materials — organised by topic.',
+            resources_search: 'Search by filename or path...',
+            resources_loading: 'Loading resources...',
+            resources_no_results: 'No files match your search or filter.',
+            stats_categories: 'categories',
+            stats_files: 'files',
+            footer: 'PhysicsLab · built with GitHub Pages · 2026'
+        }
+    };
+
+    let currentLang = 'en';
+
+    function switchLanguage(lang) {
+        currentLang = lang;
+        const t = translations[lang];
+        document.querySelectorAll('[data-key]').forEach(el => {
+            const key = el.dataset.key;
+            if (t[key] !== undefined) {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = t[key];
+                } else {
+                    el.textContent = t[key];
+                }
+            }
+        });
+        const toggleBtn = document.getElementById('langToggle');
+        if (toggleBtn) toggleBtn.textContent = lang === 'zh' ? 'English' : '中文';
+        localStorage.setItem('preferredLang', lang);
+        document.documentElement.lang = lang;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('langToggle');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                switchLanguage(currentLang === 'zh' ? 'en' : 'zh');
+            });
+        }
+        const savedLang = localStorage.getItem('preferredLang') || 'en';
+        switchLanguage(savedLang);
+    });
+
     const OWNER = 'HuangZixuanCQU';
     const REPO = 'Platform-for-Better-Physics';
     const FOLDER = 'Resources';
@@ -553,6 +575,10 @@
     }
 
     loadAll();
+
+
+
+    
 </script>
 
 </body>
