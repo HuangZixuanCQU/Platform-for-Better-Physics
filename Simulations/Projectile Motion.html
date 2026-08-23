@@ -701,7 +701,7 @@
         function computeTrajectory() {
             const theta = radians(angleDeg);
             const vx = v0 * cos(theta);
-            const vy = -v0 * sin(theta);
+            const vy = v0 * sin(theta);
 
             trailPoints = [];
             let xPhys = 0;
