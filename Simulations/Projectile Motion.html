@@ -1,544 +1,723 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Projectile Motion · Real-time Analysis</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5/1.9.0/p5.min.js"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #f4f6f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-      padding: 16px;
-    }
-    .sim-container {
-      background: #ffffff;
-      border-radius: 28px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.07);
-      padding: 24px 24px 20px 24px;
-      max-width: 1100px;
-      width: 100%;
-      transition: box-shadow 0.2s;
-    }
-    .sim-container:hover {
-      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.10);
-    }
-    .main-layout {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 24px;
-    }
-    .canvas-wrapper {
-      flex: 1 1 720px;
-      min-width: 0;
-    }
-    canvas {
-      display: block;
-      width: 100%;
-      height: auto;
-      border-radius: 18px;
-      background: #ffffff;
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
-    }
-    .controls {
-      flex: 0 0 240px;
-      min-width: 200px;
-      background: #f8faff;
-      border-radius: 20px;
-      padding: 18px 16px 16px 16px;
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.02);
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-    .ctrl-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .ctrl-group label {
-      font-size: 0.78rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: #334155;
-      display: flex;
-      justify-content: space-between;
-    }
-    .ctrl-group input[type="range"] {
-      width: 100%;
-      margin: 4px 0;
-      accent-color: #2563eb;
-      background: #e2e8f0;
-      border-radius: 12px;
-      height: 5px;
-    }
-    .ctrl-group input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #2563eb;
-      cursor: pointer;
-      border: 2px solid white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-    .value-badge {
-      background: #eef2f6;
-      padding: 2px 12px;
-      border-radius: 30px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      color: #0f172a;
-    }
-    .checkbox-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 4px;
-    }
-    .checkbox-group input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: #2563eb;
-      cursor: pointer;
-    }
-    .checkbox-group label {
-      font-size: 0.85rem;
-      font-weight: 450;
-      color: #1e293b;
-      cursor: pointer;
-    }
-    .btn-reset {
-      background: #eef2f6;
-      border: none;
-      border-radius: 40px;
-      padding: 10px 0;
-      font-weight: 550;
-      font-size: 0.9rem;
-      color: #1e293b;
-      cursor: pointer;
-      transition: 0.15s;
-      margin-top: 8px;
-      border: 1px solid transparent;
-    }
-    .btn-reset:hover {
-      background: #e2e8f0;
-      border-color: #cbd5e1;
-    }
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      margin-top: 6px;
-      font-size: 0.8rem;
-      color: #334155;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .legend-dot {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      border-radius: 4px;
-    }
-    .hint-text {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      margin-top: 4px;
-      text-align: right;
-    }
-    @media (max-width: 780px) {
-      .controls { flex: 1 1 100%; }
-      .main-layout { gap: 16px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysicsLab · Projectile Motion</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js">
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f4f6f9;
+            color: #1a2332;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            border-radius: 28px;
+            padding: 24px 24px 20px 24px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.07);
+        }
+
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0 16px;
+            border-bottom: 2px solid #e6edf4;
+            margin-bottom: 20px;
+        }
+        .top-bar .logo {
+            font-size: 22px;
+            font-weight: 600;
+            color: #0a1a2b;
+        }
+        .top-bar .logo span {
+            color: #2d7aff;
+        }
+        .top-bar .nav-links {
+            display: flex;
+            gap: 28px;
+            font-size: 15px;
+            align-items: center;
+        }
+        .top-bar .nav-links a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: 0.15s;
+        }
+        .top-bar .nav-links a:hover {
+            color: #1a5fd0;
+            border-bottom-color: #2d7aff;
+        }
+        .top-bar .nav-links a.active {
+            color: #1a5fd0;
+            border-bottom-color: #2d7aff;
+        }
+
+        .sim-title {
+            margin-bottom: 12px;
+        }
+        .sim-title h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .sim-title h1 span {
+            color: #2d7aff;
+        }
+        .sim-title p {
+            color: #4a5a6e;
+            font-size: 14px;
+        }
+
+        .main-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .canvas-wrapper {
+            flex: 1 1 680px;
+            min-width: 0;
+        }
+        .canvas-wrapper canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 16px;
+            background: #fafcff;
+            border: 1px solid #eef3f8;
+        }
+
+        .controls {
+            flex: 0 0 230px;
+            min-width: 190px;
+            background: #f8faff;
+            border-radius: 18px;
+            padding: 18px 16px 16px 16px;
+            border: 1px solid #eef3f8;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .ctrl-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #334155;
+            display: flex;
+            justify-content: space-between;
+        }
+        .ctrl-group input[type="range"] {
+            width: 100%;
+            accent-color: #2d7aff;
+            background: #e2e8f0;
+            border-radius: 12px;
+            height: 5px;
+            cursor: pointer;
+        }
+        .ctrl-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #2d7aff;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+        .value-badge {
+            background: #eef2f6;
+            padding: 1px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 2px 0;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            accent-color: #2d7aff;
+            cursor: pointer;
+        }
+        .checkbox-group label {
+            font-size: 0.82rem;
+            color: #1e293b;
+            cursor: pointer;
+        }
+
+        .btn-reset {
+            background: #eef2f6;
+            border: none;
+            border-radius: 40px;
+            padding: 10px 0;
+            font-weight: 550;
+            font-size: 0.85rem;
+            color: #1e293b;
+            cursor: pointer;
+            transition: 0.15s;
+            margin-top: 4px;
+            border: 1px solid transparent;
+            font-family: inherit;
+        }
+        .btn-reset:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 4px;
+            font-size: 0.78rem;
+            color: #334155;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .legend-dot {
+            display: inline-block;
+            width: 14px;
+            height: 4px;
+            border-radius: 3px;
+        }
+        .legend-dot.circle {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .hint-text {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            text-align: right;
+            margin-top: 2px;
+        }
+
+        .footer-note {
+            margin-top: 20px;
+            padding-top: 12px;
+            border-top: 1px solid #e6edf4;
+            font-size: 13px;
+            color: #6b7f94;
+            text-align: center;
+        }
+
+        @media (max-width: 780px) {
+            .controls {
+                flex: 1 1 100%;
+            }
+            .main-layout {
+                gap: 16px;
+            }
+            .container {
+                padding: 16px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="sim-container">
-  <div class="main-layout">
-    <div class="canvas-wrapper">
-      <div id="p5canvas"></div>
+
+    <div class="container">
+
+        <!-- Navigation -->
+        <div class="top-bar">
+            <div class="logo">Physics<span>Lab</span></div>
+            <div class="nav-links">
+                <a href="../index.html">Home</a>
+                <a href="../share.html">Resources</a>
+                <a href="../simulations.html" class="active">Simulations</a>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <div class="sim-title">
+            <h1>Projectile <span>Motion</span></h1>
+            <p>Real-time simulation · Adjust parameters and watch the trajectory update</p>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <div class="canvas-wrapper">
+                <div id="p5canvas"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <div class="ctrl-group">
+                    <label>Initial Speed <span class="value-badge" id="speedDisplay">28.0</span></label>
+                    <input type="range" id="speedSlider" min="6" max="55" value="28" step="0.5">
+                </div>
+                <div class="ctrl-group">
+                    <label>Launch Angle <span class="value-badge" id="angleDisplay">52°</span></label>
+                    <input type="range" id="angleSlider" min="5" max="85" value="52" step="0.5">
+                </div>
+                <div class="ctrl-group">
+                    <label>Launch Height <span class="value-badge" id="heightDisplay">0.0</span></label>
+                    <input type="range" id="heightSlider" min="-6" max="24" value="0" step="0.5">
+                </div>
+
+                <div class="ctrl-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showTrajectory" checked>
+                        <label for="showTrajectory">Trajectory</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showEnvelope" checked>
+                        <label for="showEnvelope">Safety parabola</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showRangeLine" checked>
+                        <label for="showRangeLine">Range indicator</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showVelocity" checked>
+                        <label for="showVelocity">Velocity vector</label>
+                    </div>
+                </div>
+
+                <button class="btn-reset" id="resetBtn">⟳ Reset to default</button>
+
+                <div class="legend">
+                    <span class="legend-item"><span class="legend-dot" style="background:#2d7aff;"></span> Trajectory</span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#dc3545;"></span> Envelope</span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#28a745;"></span> Range</span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#ff6b35;"></span> Velocity</span>
+                </div>
+                <div class="hint-text">Drag sliders · real-time update</div>
+            </div>
+        </div>
+
+        <div class="footer-note">PhysicsLab · p5.js · 2026</div>
     </div>
-    <div class="controls">
-      <div class="ctrl-group">
-        <label>Initial Speed <span class="value-badge" id="speedDisplay">28.0</span></label>
-        <input type="range" id="speedSlider" min="6" max="55" value="28" step="0.2">
-      </div>
-      <div class="ctrl-group">
-        <label>Launch Angle <span class="value-badge" id="angleDisplay">52°</span></label>
-        <input type="range" id="angleSlider" min="5" max="85" value="52" step="0.5">
-      </div>
-      <div class="ctrl-group">
-        <label>Launch Height <span class="value-badge" id="heightDisplay">0.0</span></label>
-        <input type="range" id="heightSlider" min="-8" max="28" value="0" step="0.5">
-      </div>
-      <div class="ctrl-group">
-        <div class="checkbox-group">
-          <input type="checkbox" id="showTrajectory" checked>
-          <label for="showTrajectory">Trajectory</label>
-        </div>
-        <div class="checkbox-group">
-          <input type="checkbox" id="showEnvelope" checked>
-          <label for="showEnvelope">Safety parabola (envelope)</label>
-        </div>
-        <div class="checkbox-group">
-          <input type="checkbox" id="showRangeLine" checked>
-          <label for="showRangeLine">Range indicator</label>
-        </div>
-      </div>
-      <button class="btn-reset" id="resetBtn">⟳ Reset view</button>
-      <div class="legend">
-        <span class="legend-item"><span class="legend-dot" style="background:#2563eb;"></span> Trajectory</span>
-        <span class="legend-item"><span class="legend-dot" style="background:#d97706; border:1px solid #b45309;"></span> Envelope</span>
-        <span class="legend-item"><span class="legend-dot" style="background:#059669;"></span> Range</span>
-      </div>
-      <div class="hint-text">Drag sliders · real-time update</div>
-    </div>
-  </div>
-</div>
 
-<script>
-// --------------------------------------------------------------------
-// Projectile Motion Simulation with real-time analysis
-// Features: adjustable v0, angle, height; trajectory, safety parabola,
-// range indicator. Fully interactive.
-// --------------------------------------------------------------------
+    <script>
+        // ============================================================
+        //  PROJECTILE MOTION · p5.js
+        //  Real-time simulation with trajectory, envelope, range, velocity
+        // ============================================================
 
-// ----- p5.js sketch ------
-let canvas;
-let ball = { pos: null, vel: null, radius: 10 };
-let trailPoints = [];
-let gravity = 9.8;          // m/s²
-let scale = 3.6;            // pixels per meter
-let groundY = 420;          // y-coordinate of ground (pixels)
-let originX = 110;          // launch x (pixels)
+        // ----- Parameters -----
+        let v0 = 28.0;
+        let angleDeg = 52;
+        let heightM = 0.0;
+        let gravity = 9.8;
 
-// Parameters (controlled by sliders)
-let v0 = 28.0;              // m/s
-let angleDeg = 52;          // degrees
-let heightM = 0.0;          // meters (relative to ground)
+        // ----- UI flags -----
+        let showTrajectory = true;
+        let showEnvelope = true;
+        let showRange = true;
+        let showVelocity = true;
 
-// UI flags
-let showTrajectory = true;
-let showEnvelope = true;
-let showRange = true;
+        // ----- Simulation state -----
+        let trailPoints = [];
+        let envelopePoints = [];
+        let ballPos = null;
+        let ballVel = null;
 
-// For envelope computation
-let envelopePoints = [];
+        // ----- Display constants -----
+        let scaleFactor = 3.6; // pixels per meter
+        let groundY = 410;
+        let originX = 110;
+        let ballRadius = 10;
 
-function setup() {
-  canvas = createCanvas(780, 500);
-  canvas.parent('p5canvas');
-  pixelDensity(1);
-  textFont('Segoe UI, system-ui, sans-serif');
-  textSize(13);
-  
-  // bind sliders
-  const speedSlider = select('#speedSlider');
-  const angleSlider = select('#angleSlider');
-  const heightSlider = select('#heightSlider');
-  const resetBtn = select('#resetBtn');
-  
-  speedSlider.input(() => {
-    v0 = float(speedSlider.value());
-    select('#speedDisplay').html(v0.toFixed(1));
-    computeTrajectory();
-  });
-  angleSlider.input(() => {
-    angleDeg = float(angleSlider.value());
-    select('#angleDisplay').html(angleDeg.toFixed(0) + '°');
-    computeTrajectory();
-  });
-  heightSlider.input(() => {
-    heightM = float(heightSlider.value());
-    select('#heightDisplay').html(heightM.toFixed(1));
-    computeTrajectory();
-  });
-  
-  // checkboxes
-  select('#showTrajectory').changed(() => {
-    showTrajectory = select('#showTrajectory').checked();
-  });
-  select('#showEnvelope').changed(() => {
-    showEnvelope = select('#showEnvelope').checked();
-    if (showEnvelope) computeEnvelope();
-  });
-  select('#showRangeLine').changed(() => {
-    showRange = select('#showRangeLine').checked();
-  });
-  
-  resetBtn.mousePressed(() => {
-    // reset to default values
-    speedSlider.value('28');
-    angleSlider.value('52');
-    heightSlider.value('0');
-    v0 = 28;
-    angleDeg = 52;
-    heightM = 0;
-    select('#speedDisplay').html('28.0');
-    select('#angleDisplay').html('52°');
-    select('#heightDisplay').html('0.0');
-    computeTrajectory();
-  });
-  
-  // initial computation
-  computeTrajectory();
-  computeEnvelope();
-}
+        // ----- DOM refs -----
+        const speedSlider = document.getElementById('speedSlider');
+        const angleSlider = document.getElementById('angleSlider');
+        const heightSlider = document.getElementById('heightSlider');
+        const speedDisplay = document.getElementById('speedDisplay');
+        const angleDisplay = document.getElementById('angleDisplay');
+        const heightDisplay = document.getElementById('heightDisplay');
+        const resetBtn = document.getElementById('resetBtn');
 
-function draw() {
-  background(250, 252, 254);
-  
-  // ----- draw ground & grid -----
-  stroke(205, 215, 225);
-  strokeWeight(1.8);
-  line(0, groundY, width, groundY);
-  noFill();
-  stroke(225, 232, 240);
-  strokeWeight(0.6);
-  for (let x = 0; x <= width; x += 50) {
-    line(x, 0, x, groundY);
-  }
-  for (let y = 0; y <= groundY; y += 40) {
-    line(0, y, width, y);
-  }
-  
-  // ----- draw launch point (origin) -----
-  let launchX = originX;
-  let launchY = groundY - heightM * scale;
-  fill(30, 41, 59);
-  noStroke();
-  circle(launchX, launchY, 8);
-  stroke(30, 41, 59, 80);
-  strokeWeight(1.2);
-  line(launchX - 12, launchY, launchX + 12, launchY);
-  line(launchX, launchY - 12, launchX, launchY + 12);
-  
-  // ----- draw safety parabola (envelope) -----
-  if (showEnvelope && envelopePoints.length > 2) {
-    noFill();
-    stroke(217, 119, 6, 200);
-    strokeWeight(2.2);
-    beginShape();
-    for (let p of envelopePoints) {
-      vertex(p.x, p.y);
-    }
-    endShape();
-    // dashed style for lower part (optional)
-    stroke(217, 119, 6, 100);
-    strokeWeight(1.5);
-    drawingContext.setLineDash([6, 8]);
-    beginShape();
-    for (let i = Math.floor(envelopePoints.length * 0.6); i < envelopePoints.length; i++) {
-      vertex(envelopePoints[i].x, envelopePoints[i].y);
-    }
-    endShape();
-    drawingContext.setLineDash([]);
-  }
-  
-  // ----- draw trajectory (real-time) -----
-  if (showTrajectory && trailPoints.length > 1) {
-    noFill();
-    stroke(37, 99, 235, 200);
-    strokeWeight(2.8);
-    beginShape();
-    for (let p of trailPoints) {
-      vertex(p.x, p.y);
-    }
-    endShape();
-    // highlight points
-    for (let i = 0; i < trailPoints.length; i += 4) {
-      let alpha = map(i, 0, trailPoints.length, 40, 120);
-      fill(37, 99, 235, alpha);
-      noStroke();
-      circle(trailPoints[i].x, trailPoints[i].y, 4);
-    }
-  }
-  
-  // ----- draw range indicator -----
-  if (showRange && trailPoints.length > 1) {
-    let last = trailPoints[trailPoints.length - 1];
-    // find the point where y crosses ground (or closest to ground)
-    let groundCross = null;
-    for (let i = 0; i < trailPoints.length - 1; i++) {
-      let p1 = trailPoints[i];
-      let p2 = trailPoints[i+1];
-      if ((p1.y - groundY) * (p2.y - groundY) <= 0 && p1.y >= groundY-2) {
-        // linear interpolation for better accuracy
-        let t = (groundY - p1.y) / (p2.y - p1.y);
-        let xCross = p1.x + t * (p2.x - p1.x);
-        groundCross = createVector(xCross, groundY);
-        break;
-      }
-    }
-    if (groundCross) {
-      fill(5, 150, 105, 80);
-      noStroke();
-      rect(launchX, groundY-3, groundCross.x - launchX, 6);
-      stroke(5, 150, 105, 200);
-      strokeWeight(2.5);
-      line(launchX, groundY, groundCross.x, groundY);
-      // arrow tip
-      fill(5, 150, 105);
-      noStroke();
-      circle(groundCross.x, groundY, 6);
-      // range text
-      let rangeM = (groundCross.x - launchX) / scale;
-      fill(5, 150, 105, 220);
-      noStroke();
-      textSize(13);
-      textFont('Segoe UI, sans-serif');
-      text(`Range ${rangeM.toFixed(1)} m`, (launchX + groundCross.x)/2 - 30, groundY - 14);
-    }
-  }
-  
-  // ----- draw flying ball (if any) -----
-  if (ball.pos) {
-    // shadow
-    noStroke();
-    fill(0, 0, 0, 40);
-    ellipse(ball.pos.x + 3, ball.pos.y + 6, ball.radius * 1.5, ball.radius * 0.6);
-    // ball
-    let grad = drawingContext.createRadialGradient(
-      ball.pos.x - 4, ball.pos.y - 6, 3,
-      ball.pos.x, ball.pos.y, ball.radius + 5
-    );
-    grad.addColorStop(0, '#f87171');
-    grad.addColorStop(0.5, '#dc2626');
-    grad.addColorStop(1, '#991b1b');
-    drawingContext.fillStyle = grad;
-    drawingContext.beginPath();
-    drawingContext.arc(ball.pos.x, ball.pos.y, ball.radius, 0, Math.PI * 2);
-    drawingContext.fill();
-    // highlight
-    fill(255, 255, 255, 110);
-    ellipse(ball.pos.x - 4, ball.pos.y - 7, 8, 5);
-  }
-  
-  // ----- info labels -----
-  fill(30, 41, 59);
-  noStroke();
-  textSize(13);
-  textFont('Segoe UI, sans-serif');
-  text(`v₀ = ${v0.toFixed(1)} m/s  angle = ${angleDeg.toFixed(0)}°  height = ${heightM.toFixed(1)} m`, 20, 30);
-  fill(148, 163, 184);
-  textSize(11);
-  text('drag sliders to adjust · real-time', 20, 50);
-}
+        const showTrajectoryCheck = document.getElementById('showTrajectory');
+        const showEnvelopeCheck = document.getElementById('showEnvelope');
+        const showRangeCheck = document.getElementById('showRangeLine');
+        const showVelocityCheck = document.getElementById('showVelocity');
 
-// ------------------------------------------------------------
-// Compute trajectory points based on current parameters
-// Uses kinematic equations: x = v0*cosθ*t, y = y0 + v0*sinθ*t - 0.5*g*t²
-// ------------------------------------------------------------
-function computeTrajectory() {
-  let theta = radians(angleDeg);
-  let vx = v0 * cos(theta);
-  let vy = -v0 * sin(theta);   // p5 y is downward, so negative for upward
-  let y0 = -heightM * scale;   // launch height in pixels (negative because y up is negative)
-  
-  // launch position in pixels
-  let startX = originX;
-  let startY = groundY + y0;
-  
-  // clear trail
-  trailPoints = [];
-  
-  // time step
-  let dt = 0.025;
-  let t = 0;
-  let pos = createVector(startX, startY);
-  let vel = createVector(vx * scale, vy * scale); // scale to pixels
-  
-  // integrate until ball hits ground or goes out of bounds
-  let maxSteps = 2000;
-  let steps = 0;
-  while (steps < maxSteps) {
-    trailPoints.push(pos.copy());
-    // update velocity (gravity)
-    vel.y += gravity * scale * dt;
-    pos.add(vel.copy().mult(dt));
-    t += dt;
-    steps++;
-    // ground collision (stop)
-    if (pos.y >= groundY) {
-      pos.y = groundY;
-      trailPoints.push(pos.copy());
-      break;
-    }
-    // out of canvas horizontally
-    if (pos.x > width + 50 || pos.x < -50) break;
-    // too high or too low (safety)
-    if (pos.y < -300 || pos.y > groundY + 200) break;
-  }
-  
-  // update ball position to last point (for display)
-  if (trailPoints.length > 0) {
-    let last = trailPoints[trailPoints.length - 1];
-    ball.pos = last.copy();
-    ball.radius = 10;
-  }
-  
-  // recompute envelope (if visible)
-  if (showEnvelope) computeEnvelope();
-}
+        // ============================================================
+        //  p5.js
+        // ============================================================
 
-// ------------------------------------------------------------
-// Safety parabola (envelope) for projectile motion:
-// y = y0 + (v0²)/(2g) - (g x²)/(2 v0²)   (for given v0, y0)
-// Actually: for fixed v0 and varying angle, the envelope is:
-// y = y0 + v0²/(2g) - (g x²)/(2 v0²)
-// This is the "safety parabola" (all trajectories lie below it)
-// ------------------------------------------------------------
-function computeEnvelope() {
-  envelopePoints = [];
-  let g = gravity;
-  let v = v0;
-  let y0Pix = -heightM * scale; // launch height in pixels (negative)
-  let y0 = heightM; // in meters (positive upward)
-  
-  // Envelope in physical coordinates: y = y0 + v²/(2g) - (g x²)/(2 v²)
-  // Convert to pixel coordinates: x_pix = originX + x_m * scale, y_pix = groundY - y_m * scale
-  let maxRange = (v * v) / g; // maximum range (when angle=45°)
-  let maxHeight = y0 + (v * v) / (2 * g);
-  
-  let steps = 80;
-  for (let i = 0; i <= steps; i++) {
-    let xPhys = (i / steps) * maxRange * 1.2;
-    let yPhys = y0 + (v * v) / (2 * g) - (g * xPhys * xPhys) / (2 * v * v);
-    // only draw if yPhys >= y0 (above launch point) and yPhys >= 0 (above ground)
-    if (yPhys < -2) continue; // avoid going too far below ground
-    let px = originX + xPhys * scale;
-    let py = groundY - yPhys * scale;
-    // clip to canvas
-    if (px > width + 20) break;
-    envelopePoints.push(createVector(px, py));
-  }
-}
+        function setup() {
+            const canvas = createCanvas(780, 480);
+            canvas.parent('p5canvas');
+            pixelDensity(1);
+            textFont('Segoe UI, system-ui, sans-serif');
 
-// when sliders change, recompute
-function computeAll() {
-  computeTrajectory();
-  if (showEnvelope) computeEnvelope();
-}
+            // --- Slider events ---
+            speedSlider.addEventListener('input', function() {
+                v0 = parseFloat(this.value);
+                speedDisplay.textContent = v0.toFixed(1);
+                computeTrajectory();
+                if (showEnvelope) computeEnvelope();
+            });
+            angleSlider.addEventListener('input', function() {
+                angleDeg = parseFloat(this.value);
+                angleDisplay.textContent = angleDeg.toFixed(0) + '°';
+                computeTrajectory();
+                if (showEnvelope) computeEnvelope();
+            });
+            heightSlider.addEventListener('input', function() {
+                heightM = parseFloat(this.value);
+                heightDisplay.textContent = heightM.toFixed(1);
+                computeTrajectory();
+                if (showEnvelope) computeEnvelope();
+            });
 
-// override windowResized to keep canvas stable
-function windowResized() {
-  // keep fixed size
-}
+            // --- Checkbox events ---
+            showTrajectoryCheck.addEventListener('change', function() {
+                showTrajectory = this.checked;
+            });
+            showEnvelopeCheck.addEventListener('change', function() {
+                showEnvelope = this.checked;
+                if (showEnvelope) computeEnvelope();
+            });
+            showRangeCheck.addEventListener('change', function() {
+                showRange = this.checked;
+            });
+            showVelocityCheck.addEventListener('change', function() {
+                showVelocity = this.checked;
+            });
 
-// also update on any slider drag
-// (bound in setup)
-</script>
+            // --- Reset button ---
+            resetBtn.addEventListener('click', function() {
+                speedSlider.value = '28';
+                angleSlider.value = '52';
+                heightSlider.value = '0';
+                v0 = 28;
+                angleDeg = 52;
+                heightM = 0;
+                speedDisplay.textContent = '28.0';
+                angleDisplay.textContent = '52°';
+                heightDisplay.textContent = '0.0';
+                computeTrajectory();
+                if (showEnvelope) computeEnvelope();
+            });
+
+            // --- Initial computation ---
+            computeTrajectory();
+            if (showEnvelope) computeEnvelope();
+        }
+
+        // ============================================================
+        //  DRAW
+        // ============================================================
+
+        function draw() {
+            background(250, 252, 254);
+
+            // ----- Grid -----
+            push();
+            stroke(220, 228, 238);
+            strokeWeight(0.6);
+            for (let x = 0; x <= width; x += 50) {
+                line(x, 0, x, groundY);
+            }
+            for (let y = 0; y <= groundY; y += 40) {
+                line(0, y, width, y);
+            }
+            pop();
+
+            // ----- Ground -----
+            push();
+            stroke(60, 70, 90);
+            strokeWeight(2);
+            line(0, groundY, width, groundY);
+            pop();
+
+            // ----- Launch point -----
+            const launchX = originX;
+            const launchY = groundY - heightM * scaleFactor;
+            push();
+            fill(30, 41, 59);
+            noStroke();
+            circle(launchX, launchY, 8);
+            stroke(30, 41, 59, 80);
+            strokeWeight(1.2);
+            line(launchX - 14, launchY, launchX + 14, launchY);
+            line(launchX, launchY - 14, launchX, launchY + 14);
+            pop();
+
+            // ----- Safety parabola (envelope) -----
+            if (showEnvelope && envelopePoints.length > 2) {
+                push();
+                noFill();
+                stroke(220, 60, 80, 180);
+                strokeWeight(2);
+                beginShape();
+                for (const p of envelopePoints) {
+                    vertex(p.x, p.y);
+                }
+                endShape();
+                // dashed extension
+                stroke(220, 60, 80, 80);
+                strokeWeight(1.5);
+                drawingContext.setLineDash([6, 8]);
+                beginShape();
+                const startIdx = Math.floor(envelopePoints.length * 0.5);
+                for (let i = startIdx; i < envelopePoints.length; i++) {
+                    vertex(envelopePoints[i].x, envelopePoints[i].y);
+                }
+                endShape();
+                drawingContext.setLineDash([]);
+                pop();
+            }
+
+            // ----- Trajectory -----
+            if (showTrajectory && trailPoints.length > 1) {
+                push();
+                noFill();
+                stroke(45, 120, 255, 200);
+                strokeWeight(2.8);
+                beginShape();
+                for (const p of trailPoints) {
+                    vertex(p.x, p.y);
+                }
+                endShape();
+                // Glow effect
+                stroke(45, 120, 255, 40);
+                strokeWeight(6);
+                beginShape();
+                for (const p of trailPoints) {
+                    vertex(p.x, p.y);
+                }
+                endShape();
+                pop();
+
+                // Trail dots
+                push();
+                for (let i = 0; i < trailPoints.length; i += 4) {
+                    const alpha = map(i, 0, trailPoints.length, 30, 100);
+                    fill(45, 120, 255, alpha);
+                    noStroke();
+                    circle(trailPoints[i].x, trailPoints[i].y, 3.5);
+                }
+                pop();
+            }
+
+            // ----- Range indicator -----
+            if (showRange && trailPoints.length > 1) {
+                let groundCross = null;
+                for (let i = 0; i < trailPoints.length - 1; i++) {
+                    const p1 = trailPoints[i];
+                    const p2 = trailPoints[i + 1];
+                    if ((p1.y - groundY) * (p2.y - groundY) <= 0 && p1.y >= groundY - 2) {
+                        const t = (groundY - p1.y) / (p2.y - p1.y);
+                        const xCross = p1.x + t * (p2.x - p1.x);
+                        groundCross = createVector(xCross, groundY);
+                        break;
+                    }
+                }
+                if (groundCross) {
+                    push();
+                    // Range bar
+                    fill(40, 167, 69, 60);
+                    noStroke();
+                    rect(launchX, groundY - 3, groundCross.x - launchX, 6);
+                    stroke(40, 167, 69, 200);
+                    strokeWeight(2);
+                    line(launchX, groundY, groundCross.x, groundY);
+                    // Arrow tip
+                    fill(40, 167, 69);
+                    noStroke();
+                    circle(groundCross.x, groundY, 6);
+                    // Range label
+                    const rangeM = (groundCross.x - launchX) / scaleFactor;
+                    fill(40, 167, 69, 220);
+                    noStroke();
+                    textSize(13);
+                    textAlign(CENTER, BOTTOM);
+                    text('R = ' + rangeM.toFixed(1) + ' m', (launchX + groundCross.x) / 2, groundY - 10);
+                    pop();
+                }
+            }
+
+            // ----- Velocity vector -----
+            if (showVelocity && ballPos && ballVel) {
+                const vScale = 2.2;
+                const endX = ballPos.x + ballVel.x * vScale;
+                const endY = ballPos.y + ballVel.y * vScale;
+                push();
+                stroke(255, 107, 53);
+                strokeWeight(2.5);
+                line(ballPos.x, ballPos.y, endX, endY);
+                // Arrowhead
+                const angleArrow = atan2(ballVel.y, ballVel.x);
+                const headLen = 10;
+                push();
+                translate(endX, endY);
+                rotate(angleArrow);
+                fill(255, 107, 53);
+                noStroke();
+                triangle(0, 0, -headLen, -headLen * 0.4, -headLen, headLen * 0.4);
+                pop();
+                // Speed label
+                const speedMag = sqrt(ballVel.x * ballVel.x + ballVel.y * ballVel.y) / scaleFactor;
+                fill(255, 107, 53);
+                noStroke();
+                textSize(12);
+                textAlign(LEFT, BOTTOM);
+                text('v = ' + speedMag.toFixed(1) + ' m/s', endX + 8, endY - 4);
+                pop();
+            }
+
+            // ----- Ball -----
+            if (ballPos) {
+                // Shadow
+                push();
+                noStroke();
+                fill(0, 0, 0, 40);
+                ellipse(ballPos.x + 3, ballPos.y + 6, ballRadius * 1.5, ballRadius * 0.5);
+                pop();
+                // Ball
+                push();
+                const grad = drawingContext.createRadialGradient(
+                    ballPos.x - 4, ballPos.y - 6, 3,
+                    ballPos.x, ballPos.y, ballRadius + 4
+                );
+                grad.addColorStop(0, '#60a5fa');
+                grad.addColorStop(0.6, '#2563eb');
+                grad.addColorStop(1, '#1e40af');
+                drawingContext.fillStyle = grad;
+                drawingContext.beginPath();
+                drawingContext.arc(ballPos.x, ballPos.y, ballRadius, 0, Math.PI * 2);
+                drawingContext.fill();
+                // Highlight
+                fill(255, 255, 255, 120);
+                ellipse(ballPos.x - 3, ballPos.y - 5, 6, 4);
+                pop();
+            }
+
+            // ----- Info text -----
+            push();
+            fill(30, 41, 59);
+            noStroke();
+            textSize(13);
+            textAlign(LEFT, TOP);
+            text('v₀ = ' + v0.toFixed(1) + ' m/s  |  θ = ' + angleDeg.toFixed(0) + '°  |  h = ' + heightM.toFixed(1) + ' m',
+                16, 14);
+            fill(148, 163, 184);
+            textSize(11);
+            text('Drag sliders · real-time', 16, 34);
+            pop();
+        }
+
+        // ============================================================
+        //  COMPUTATION
+        // ============================================================
+
+        function computeTrajectory() {
+            const theta = radians(angleDeg);
+            const vx = v0 * cos(theta);
+            const vy = -v0 * sin(theta);
+
+            trailPoints = [];
+            let x = 0,
+                y = heightM;
+            const dt = 0.02;
+            let t = 0;
+            let maxSteps = 3000;
+
+            for (let i = 0; i < maxSteps; i++) {
+                const px = originX + x * scaleFactor;
+                const py = groundY - y * scaleFactor;
+                trailPoints.push(createVector(px, py));
+
+                t += dt;
+                x = vx * t;
+                y = heightM + vy * t - 0.5 * gravity * t * t;
+
+                if (y < 0) {
+                    // Linear interpolation to ground
+                    const lastP = trailPoints[trailPoints.length - 1];
+                    const prevP = trailPoints[trailPoints.length - 2] || lastP;
+                    const frac = (groundY - prevP.y) / (lastP.y - prevP.y);
+                    const gx = prevP.x + frac * (lastP.x - prevP.x);
+                    trailPoints.push(createVector(gx, groundY));
+                    break;
+                }
+                if (px > width + 50 || px < -50) break;
+                if (py < -200 || py > groundY + 200) break;
+            }
+
+            if (trailPoints.length > 0) {
+                const last = trailPoints[trailPoints.length - 1];
+                ballPos = last.copy();
+                // Velocity at last point
+                const vxPix = vx * scaleFactor;
+                const vyPix = (-vy + gravity * t) * scaleFactor;
+                ballVel = createVector(vxPix, vyPix);
+            }
+        }
+
+        function computeEnvelope() {
+            envelopePoints = [];
+            const v = v0;
+            const g = gravity;
+            const y0 = heightM;
+            const maxRange = (v * v) / g;
+            const steps = 100;
+
+            for (let i = 0; i <= steps; i++) {
+                const xPhys = (i / steps) * maxRange * 1.25;
+                const yPhys = y0 + (v * v) / (2 * g) - (g * xPhys * xPhys) / (2 * v * v);
+                if (yPhys < -1) continue;
+                const px = originX + xPhys * scaleFactor;
+                const py = groundY - yPhys * scaleFactor;
+                if (px > width + 20) break;
+                envelopePoints.push(createVector(px, py));
+            }
+            // Negative x side (symmetric)
+            const negPoints = [];
+            for (let i = 1; i <= 40; i++) {
+                const xPhys = -(i / 40) * maxRange * 0.4;
+                const yPhys = y0 + (v * v) / (2 * g) - (g * xPhys * xPhys) / (2 * v * v);
+                if (yPhys < -1) continue;
+                const px = originX + xPhys * scaleFactor;
+                const py = groundY - yPhys * scaleFactor;
+                if (px < -20) break;
+                negPoints.push(createVector(px, py));
+            }
+            envelopePoints = negPoints.reverse().concat(envelopePoints);
+        }
+
+        function windowResized() {
+            // Keep canvas fixed size
+        }
+    </script>
+
 </body>
 </html>
