@@ -117,6 +117,48 @@
             background: #1a5fd0;
         }
 
+        .hero {
+            background: linear-gradient(145deg, #ffffff, #f2f7fe);
+            border-radius: 24px;
+            padding: 44px 48px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 16px rgba(0, 20, 40, 0.04);
+        }
+        .hero h1 {
+            font-size: 34px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        .hero h1 span {
+            color: #2d7aff;
+        }
+        .hero .sub {
+            font-size: 18px;
+            color: #3a4a5e;
+            margin-bottom: 14px;
+        }
+        .hero p {
+            color: #3d4f64;
+            max-width: 680px;
+            font-size: 15px;
+        }
+        .hero .quick-link {
+            display: inline-block;
+            margin-top: 18px;
+            background: #2d7aff;
+            color: white;
+            padding: 10px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+        .hero .quick-link:hover {
+            background: #1a5fd0;
+        }
+
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -202,6 +244,7 @@
             <a href="index.html" class="active" data-key="nav_home">Home</a>
             <a href="share.html" data-key="nav_resources">Resources</a>
             <a href="simulations.html" data-key="nav_simulations">Simulations</a>
+            <a href="AI%20for%20chaotic%20pendulum.html" class="experiment" data-key="nav_experiment">AI for Experiment</a>
             <button id="langToggle" class="lang-btn">中文</button>
         </div>
     </div>
@@ -229,6 +272,12 @@
             <p data-key="card2_desc">Interactive physics simulations — from classical mechanics to electromagnetism. Run in your browser.</p>
             <a href="simulations.html" data-key="card2_btn">Explore Simulations →</a>
         </div>
+        <div class="feature-card">
+            <div class="icon experiment-icon">AI</div>
+            <h3 data-key="card3_title">AI for Experiment</h3>
+            <p data-key="card3_desc">AI-powered chaos pendulum analysis. Real-time keypoint detection, phase plots, and Lyapunov exponent calculation.</p>
+            <a href="AI%20for%20chaotic%20pendulum.html" class="experiment-link" data-key="card3_btn">Enter AI Lab →</a>
+</div>
     </div>
 
     <div class="footer-note" data-key="footer">
@@ -254,6 +303,10 @@
                 card2_title: '交互式仿真',
                 card2_desc: '经典的物理仿真 — 直接在浏览器中运行。',
                 card2_btn: '探索仿真 →',
+                nav_experiment: 'AI 实验分析',
+                card3_title: 'AI 实验分析',
+                card3_desc: 'AI 驱动的混沌摆分析',
+                card3_btn: '进入 AI 实验室 →',
                 footer: 'PhysicsLab · 基于 GitHub Pages 构建 · 2026'
             },
             en: {
@@ -270,6 +323,10 @@
                 card2_title: 'Interactive Simulations',
                 card2_desc: 'Physics simulations from classical mechanics to electromagnetism — run in your browser.',
                 card2_btn: 'Explore Simulations →',
+                nav_experiment: 'AI for Experiment',
+                card3_title: 'AI for Experiment',
+                card3_desc: 'AI-powered chaos pendulum analysis',
+                card3_btn: 'Enter AI Lab →',
                 footer: 'PhysicsLab · built with GitHub Pages · 2026'
             }
         };
