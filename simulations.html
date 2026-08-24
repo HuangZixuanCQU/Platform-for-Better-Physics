@@ -77,7 +77,7 @@
             margin-top: 8px;
         }
         .sim-card {
-            background: rgba(255, 255, 255, 0.92);
+            background: white;
             border-radius: 16px;
             padding: 24px 24px 26px;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
@@ -85,26 +85,6 @@
             transition: 0.2s;
             display: flex;
             flex-direction: column;
-            min-height: 300px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .sim-card .card-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-size: cover;
-            background-position: center;
-            opacity: 0.15;
-            z-index: 0;
-            border-radius: 16px;
-        }
-        .sim-card > * {
-            position: relative;
-            z-index: 1;
         }
         .sim-card:hover {
             border-color: #c0d6f0;
@@ -114,19 +94,29 @@
         .sim-card .preview {
             width: 100%;
             height: 160px;
-            background: rgba(238, 243, 248, 0.7);
             border-radius: 10px;
             margin-bottom: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #8a9aa8;
-            font-size: 14px;
-            font-weight: 500;
             overflow: hidden;
             position: relative;
+            background: rgba(238, 243, 248, 0.3);
+        }
+        .sim-card .preview .preview-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.20;
+            z-index: 0;
         }
         .sim-card .preview .placeholder-icon {
+            position: relative;
+            z-index: 1;
             font-size: 48px;
             font-weight: 300;
             color: #b0c4d8;
@@ -136,6 +126,7 @@
             position: absolute;
             top: 10px;
             right: 10px;
+            z-index: 2;
             background: #ffc107;
             color: #1a2332;
             font-size: 11px;
@@ -171,7 +162,7 @@
             font-size: 14px;
         }
         .sim-card .card-footer a:hover { text-decoration: underline; }
-        .sim-card.coming .preview { opacity: 0.6; }
+        .sim-card.coming .preview .preview-bg { opacity: 0.12; }
         .sim-card.coming .card-footer a { color: #8a9aa8; cursor: default; }
         .sim-card.coming .card-footer a:hover { text-decoration: none; }
 
@@ -216,9 +207,9 @@
     <div class="sim-grid">
 
         <!-- 抛体运动 -->
-        <div class="sim-card" style="background-image: url('../Images/Projectile_Motion_Background.png'); background-size: cover; background-position: center;">
-            <div class="card-bg" style="background-image: url('../Images/Projectile_Motion_Background.png'); opacity: 0.12;"></div>
+        <div class="sim-card">
             <div class="preview">
+                <div class="preview-bg" style="background-image: url('Images/Projectile_Motion_Background.png');"></div>
                 <span class="placeholder-icon">MEC</span>
                 <span class="status-badge ready" data-key="status_ready">Ready</span>
             </div>
@@ -235,9 +226,9 @@
         </div>
 
         <!-- 双摆 -->
-        <div class="sim-card" style="background-image: url('../Images/Double_Pendulum_Background.png'); background-size: cover; background-position: center;">
-            <div class="card-bg" style="background-image: url('../Images/Double_Pendulum_Background.png'); opacity: 0.12;"></div>
+        <div class="sim-card">
             <div class="preview">
+                <div class="preview-bg" style="background-image: url('Images/Double_Pendulum_Background.png');"></div>
                 <span class="placeholder-icon">PEN</span>
                 <span class="status-badge ready" data-key="status_ready">Ready</span>
             </div>
@@ -254,9 +245,9 @@
         </div>
 
         <!-- 电场可视化 -->
-        <div class="sim-card" style="background-image: url('../Images/Electric_Field_Background.png'); background-size: cover; background-position: center;">
-            <div class="card-bg" style="background-image: url('../Images/Electric_Field_Background.png'); opacity: 0.12;"></div>
+        <div class="sim-card">
             <div class="preview">
+                <div class="preview-bg" style="background-image: url('Images/Electric_Field_Background.png');"></div>
                 <span class="placeholder-icon">EMF</span>
                 <span class="status-badge ready" data-key="status_ready">Ready</span>
             </div>
@@ -273,9 +264,9 @@
         </div>
 
         <!-- 波干涉 (Coming Soon) -->
-        <div class="sim-card coming" style="background-image: url('../Images/Default_Background.png'); background-size: cover; background-position: center;">
-            <div class="card-bg" style="background-image: url('../Images/Default_Background.png'); opacity: 0.10;"></div>
+        <div class="sim-card coming">
             <div class="preview">
+                <div class="preview-bg" style="background-image: url('Images/Default_Background.png');"></div>
                 <span class="placeholder-icon">WAV</span>
                 <span class="status-badge" data-key="status_coming">Coming</span>
             </div>
@@ -292,9 +283,9 @@
         </div>
 
         <!-- 热力学 (Coming Soon) -->
-        <div class="sim-card coming" style="background-image: url('../Images/Default_Background.png'); background-size: cover; background-position: center;">
-            <div class="card-bg" style="background-image: url('../Images/Default_Background.png'); opacity: 0.10;"></div>
+        <div class="sim-card coming">
             <div class="preview">
+                <div class="preview-bg" style="background-image: url('Images/Default_Background.png');"></div>
                 <span class="placeholder-icon">THM</span>
                 <span class="status-badge" data-key="status_coming">Coming</span>
             </div>
