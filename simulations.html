@@ -77,7 +77,7 @@
             margin-top: 8px;
         }
         .sim-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.92);
             border-radius: 16px;
             padding: 24px 24px 26px;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
@@ -85,6 +85,26 @@
             transition: 0.2s;
             display: flex;
             flex-direction: column;
+            min-height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sim-card .card-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15;
+            z-index: 0;
+            border-radius: 16px;
+        }
+        .sim-card > * {
+            position: relative;
+            z-index: 1;
         }
         .sim-card:hover {
             border-color: #c0d6f0;
@@ -94,7 +114,7 @@
         .sim-card .preview {
             width: 100%;
             height: 160px;
-            background: #eef3f8;
+            background: rgba(238, 243, 248, 0.7);
             border-radius: 10px;
             margin-bottom: 16px;
             display: flex;
@@ -181,7 +201,7 @@
             <a href="index.html" data-key="nav_home">Home</a>
             <a href="share.html" data-key="nav_resources">Resources</a>
             <a href="simulations.html" class="active" data-key="nav_simulations">Simulations</a>
-            <a href="experiment%20choosing.html" class="experiment" data-key="nav_experiment">AI for Experiment</a>
+            <a href="experiment%20choosing.html" data-key="nav_experiment">AI for Experiment</a>
             <button id="langToggle" class="lang-btn">中文</button>
         </div>
     </div>
@@ -194,8 +214,10 @@
 
     <!-- Simulation Cards -->
     <div class="sim-grid">
+
         <!-- 抛体运动 -->
-        <div class="sim-card">
+        <div class="sim-card" style="background-image: url('../Images/Projectile_Motion_Background.png'); background-size: cover; background-position: center;">
+            <div class="card-bg" style="background-image: url('../Images/Projectile_Motion_Background.png'); opacity: 0.12;"></div>
             <div class="preview">
                 <span class="placeholder-icon">MEC</span>
                 <span class="status-badge ready" data-key="status_ready">Ready</span>
@@ -213,7 +235,8 @@
         </div>
 
         <!-- 双摆 -->
-        <div class="sim-card">
+        <div class="sim-card" style="background-image: url('../Images/Double_Pendulum_Background.png'); background-size: cover; background-position: center;">
+            <div class="card-bg" style="background-image: url('../Images/Double_Pendulum_Background.png'); opacity: 0.12;"></div>
             <div class="preview">
                 <span class="placeholder-icon">PEN</span>
                 <span class="status-badge ready" data-key="status_ready">Ready</span>
@@ -231,7 +254,8 @@
         </div>
 
         <!-- 电场可视化 -->
-        <div class="sim-card">
+        <div class="sim-card" style="background-image: url('../Images/Electric_Field_Background.png'); background-size: cover; background-position: center;">
+            <div class="card-bg" style="background-image: url('../Images/Electric_Field_Background.png'); opacity: 0.12;"></div>
             <div class="preview">
                 <span class="placeholder-icon">EMF</span>
                 <span class="status-badge ready" data-key="status_ready">Ready</span>
@@ -249,7 +273,8 @@
         </div>
 
         <!-- 波干涉 (Coming Soon) -->
-        <div class="sim-card coming">
+        <div class="sim-card coming" style="background-image: url('Images/default_preview.png'); background-size: cover; background-position: center;">
+            <div class="card-bg" style="background-image: url('Images/default_preview.png'); opacity: 0.10;"></div>
             <div class="preview">
                 <span class="placeholder-icon">WAV</span>
                 <span class="status-badge" data-key="status_coming">Coming</span>
@@ -267,7 +292,8 @@
         </div>
 
         <!-- 热力学 (Coming Soon) -->
-        <div class="sim-card coming">
+        <div class="sim-card coming" style="background-image: url('Images/default_preview.png'); background-size: cover; background-position: center;">
+            <div class="card-bg" style="background-image: url('Images/default_preview.png'); opacity: 0.10;"></div>
             <div class="preview">
                 <span class="placeholder-icon">THM</span>
                 <span class="status-badge" data-key="status_coming">Coming</span>
@@ -283,6 +309,7 @@
                 <a href="#" data-key="sim_coming_soon">In development</a>
             </div>
         </div>
+
     </div>
 
     <!-- Footer -->
@@ -303,25 +330,18 @@
             simulations_sub: '在浏览器中运行物理实验 — 无需安装',
             status_ready: '就绪',
             status_coming: '开发中',
-            sim_launch: '启动 →',
-            sim_coming_soon: '开发中',
-            // 抛体运动
             sim_projectile_title: '抛体运动',
             sim_projectile_topic: '经典力学',
             sim_projectile_desc: '模拟二维抛体运动，可调节初速度、角度和重力。可视化轨迹和能量分量。',
-            // 电场
             sim_efield_title: '电场可视化',
             sim_efield_topic: '电磁学',
             sim_efield_desc: '可视化点电荷、偶极子和自定义电荷配置的电场线和等势面。',
-            // 双摆
             sim_pendulum_title: '双摆',
             sim_pendulum_topic: '混沌 · 拉格朗日力学',
             sim_pendulum_desc: 'Python + Matplotlib 模拟混沌双摆。可调节摆长和质量。',
-            // 波干涉
             sim_wave_title: '波干涉',
             sim_wave_topic: '波与光学',
             sim_wave_desc: '探索双缝干涉和衍射图案。调节波长、缝间距，实时观察干涉条纹。',
-            // 热力学
             sim_gas_title: '理想气体模拟',
             sim_gas_topic: '热力学',
             sim_gas_desc: '理想气体的分子动力学模拟。调节温度和体积，观察压力和能量分布。',
@@ -336,8 +356,6 @@
             simulations_sub: 'Run physics experiments in your browser — no installation required.',
             status_ready: 'Ready',
             status_coming: 'Coming',
-            sim_launch: 'Launch →',
-            sim_coming_soon: 'In development',
             sim_projectile_title: 'Projectile Motion',
             sim_projectile_topic: 'Classical Mechanics',
             sim_projectile_desc: 'Simulate 2D projectile motion with adjustable initial velocity, angle, and gravity. Visualise trajectory and energy components.',
