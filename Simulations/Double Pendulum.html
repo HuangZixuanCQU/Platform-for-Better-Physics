@@ -95,7 +95,7 @@
         .controls {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px 30px;
+            gap: 12px 24px;
             background: #f8faff;
             padding: 18px 24px;
             border-radius: 14px;
@@ -106,38 +106,39 @@
         .control-group {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         .control-group label {
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 12px;
+            font-weight: 600;
             color: #2c3e50;
-            min-width: 28px;
+            min-width: 24px;
         }
         .control-group input[type="range"] {
-            width: 110px;
+            width: 90px;
             cursor: pointer;
             accent-color: #2d7aff;
         }
         .control-group .value {
-            font-size: 13px;
+            font-size: 12px;
             color: #2d7aff;
             font-weight: 600;
-            min-width: 44px;
+            min-width: 36px;
             text-align: center;
             font-family: 'Courier New', monospace;
         }
         .btn-group {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin-left: auto;
+            flex-wrap: wrap;
         }
         .btn {
-            padding: 6px 16px;
+            padding: 5px 14px;
             border: none;
-            border-radius: 18px;
+            border-radius: 16px;
             font-weight: 500;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             transition: 0.15s;
             font-family: inherit;
@@ -159,7 +160,7 @@
         }
 
         @media (max-width: 768px) {
-            .controls { flex-direction: column; align-items: stretch; gap: 10px; }
+            .controls { flex-direction: column; align-items: stretch; gap: 8px; }
             .btn-group { margin-left: 0; justify-content: center; }
             .control-group input[type="range"] { width: 100%; }
             .top-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -188,7 +189,6 @@
 
         <div id="canvas-container"></div>
 
-        <!-- 控制面板 -->
         <div class="controls">
             <!-- 物理参数 -->
             <div class="control-group">
@@ -213,12 +213,12 @@
             </div>
             <div class="control-group">
                 <label>⏱</label>
-                <input type="range" id="speedSlider" min="0.2" max="5.0" value="1.0" step="0.1">
+                <input type="range" id="speedSlider" min="0.2" max="3.0" value="1.0" step="0.1">
                 <span class="value" id="speedValue">1.0x</span>
             </div>
 
             <!-- 初始条件 -->
-            <div class="control-group" style="border-left: 2px solid #e6edf4; padding-left: 16px;">
+            <div class="control-group" style="border-left:2px solid #e6edf4; padding-left:12px;">
                 <label>θ₁</label>
                 <input type="range" id="theta1InitSlider" min="-180" max="180" value="69" step="1">
                 <span class="value" id="theta1InitValue">69°</span>
@@ -314,7 +314,7 @@
         let g = 0.4;
         let timeScale = 1.0;
 
-        // ----- 初始条件（用户可调）-----
+        // ----- 初始条件 -----
         let theta1Init = radians(69);
         let theta2Init = radians(-69);
         let omega1Init = 0;
@@ -382,23 +382,40 @@
         }
 
         // ============================================================
+        //  VELOCITY VERLET INTEGRATION
+        // ============================================================
+
+        function velocityVerlet(dt) {
+            // 1. 计算当前加速度
+            const [a1, a2] = computeAccelerations(theta1, theta2, omega1, omega2);
+
+            // 2. 更新位置
+            theta1 += omega1 * dt + 0.5 * a1 * dt * dt;
+            theta2 += omega2 * dt + 0.5 * a2 * dt * dt;
+
+            // 3. 计算新加速度（使用预测的速度）
+            const [a1_new, a2_new] = computeAccelerations(theta1, theta2, omega1 + a1 * dt, omega2 + a2 * dt);
+
+            // 4. 更新速度
+            omega1 += 0.5 * (a1 + a1_new) * dt;
+            omega2 += 0.5 * (a2 + a2_new) * dt;
+        }
+
+        // ============================================================
         //  INITIALIZATION
         // ============================================================
 
         function applyInitialConditions() {
-            // 读取滑块值
             theta1Init = radians(parseFloat(theta1InitSlider.value));
             theta2Init = radians(parseFloat(theta2InitSlider.value));
             omega1Init = parseFloat(omega1InitSlider.value);
             omega2Init = parseFloat(omega2InitSlider.value);
 
-            // 更新显示
             theta1InitValue.textContent = parseFloat(theta1InitSlider.value).toFixed(0) + '°';
             theta2InitValue.textContent = parseFloat(theta2InitSlider.value).toFixed(0) + '°';
             omega1InitValue.textContent = omega1Init.toFixed(1);
             omega2InitValue.textContent = omega2Init.toFixed(1);
 
-            // 重置状态
             theta1 = theta1Init;
             theta2 = theta2Init;
             omega1 = omega1Init;
@@ -409,7 +426,7 @@
             paused = false;
             pauseBtn.textContent = 'Pause';
 
-            // 更新位置
+            // 计算初始位置
             x1 = originX + L1 * sin(theta1);
             y1 = originY + L1 * cos(theta1);
             x2 = x1 + L2 * sin(theta2);
@@ -435,7 +452,7 @@
             originX = width / 2;
             originY = 280;
 
-            // 物理参数滑块
+            // --- 物理参数滑块 ---
             L1Slider.addEventListener('input', function() {
                 L1 = parseFloat(this.value);
                 L1Value.textContent = L1;
@@ -457,7 +474,7 @@
                 speedValue.textContent = timeScale.toFixed(1) + 'x';
             });
 
-            // 初始条件滑块 - 实时更新显示值
+            // --- 初始条件滑块 ---
             theta1InitSlider.addEventListener('input', function() {
                 theta1InitValue.textContent = parseFloat(this.value).toFixed(0) + '°';
             });
@@ -471,7 +488,7 @@
                 omega2InitValue.textContent = parseFloat(this.value).toFixed(1);
             });
 
-            // 按钮事件
+            // --- 按钮 ---
             applyBtn.addEventListener('click', resetPendulum);
             pauseBtn.addEventListener('click', function() {
                 paused = !paused;
@@ -482,23 +499,20 @@
                 trail2 = [];
             });
 
-            // 初始应用
+            // --- 初始应用 ---
             applyInitialConditions();
         }
 
         function draw() {
             background('#fafcff');
 
-            // 物理更新
+            // ----- 物理更新 (Velocity Verlet) -----
             if (!paused && isInitialized) {
-                const dt = 0.04 * timeScale;
+                const dt = 0.02 * timeScale;
                 time += dt;
-                const [a1, a2] = computeAccelerations(theta1, theta2, omega1, omega2);
-                omega1 += a1 * dt;
-                omega2 += a2 * dt;
-                theta1 += omega1 * dt;
-                theta2 += omega2 * dt;
+                velocityVerlet(dt);
 
+                // 更新位置
                 x1 = originX + L1 * sin(theta1);
                 y1 = originY + L1 * cos(theta1);
                 x2 = x1 + L2 * sin(theta2);
@@ -506,11 +520,10 @@
 
                 trail1.push({ x: x1, y: y1 });
                 trail2.push({ x: x2, y: y2 });
-                // 永久轨迹，不限制长度
             }
 
             // ----- 绘制轨迹 -----
-            drawTrail();
+            drawTrails();
 
             // ----- 绘制杆 -----
             push();
@@ -553,7 +566,7 @@
                 ' pts', width - 16, 16);
             pop();
 
-            // ----- 显示初始条件信息 -----
+            // ----- 初始条件信息 -----
             push();
             fill(100, 110, 130);
             noStroke();
@@ -574,7 +587,8 @@
             pop();
         }
 
-        function drawTrail() {
+        function drawTrails() {
+            // 轨迹1 (m1) - 蓝色
             push();
             noFill();
             if (trail1.length > 1) {
@@ -587,6 +601,7 @@
             }
             pop();
 
+            // 轨迹2 (m2) - 橙色
             push();
             noFill();
             if (trail2.length > 1) {
@@ -600,7 +615,9 @@
             pop();
         }
 
-        function windowResized() {}
+        function windowResized() {
+            // 保持固定尺寸
+        }
     </script>
 
 </body>
