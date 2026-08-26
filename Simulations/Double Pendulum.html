@@ -403,7 +403,6 @@
         // ============================================================
 
         function applyInitialConditions() {
-            // 在函数内部调用 p5 函数是安全的
             theta1Init = radians(parseFloat(theta1InitSlider.value));
             theta2Init = radians(parseFloat(theta2InitSlider.value));
             omega1Init = parseFloat(omega1InitSlider.value);
@@ -451,7 +450,7 @@
             console.log('Canvas created:', canvas.width, 'x', canvas.height);
 
             originX = width / 2;
-            originY = 180;
+            originY = 280;
 
             // --- 物理参数滑块 ---
             L1Slider.addEventListener('input', function() {
