@@ -57,7 +57,6 @@
         }
         .top-bar .nav-links a:hover { color: #1a5fd0; border-bottom-color: #2d7aff; }
         .top-bar .nav-links a.active { color: #1a5fd0; border-bottom-color: #2d7aff; }
-        
         .lang-btn {
             background: #2d7aff;
             color: white;
@@ -96,7 +95,7 @@
         .controls {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px 40px;
+            gap: 12px 30px;
             background: #f8faff;
             padding: 18px 24px;
             border-radius: 14px;
@@ -107,37 +106,38 @@
         .control-group {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .control-group label {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: #2c3e50;
-            min-width: 20px;
+            min-width: 28px;
         }
         .control-group input[type="range"] {
-            width: 140px;
+            width: 110px;
             cursor: pointer;
             accent-color: #2d7aff;
         }
         .control-group .value {
-            font-size: 14px;
+            font-size: 13px;
             color: #2d7aff;
             font-weight: 600;
-            min-width: 36px;
+            min-width: 44px;
             text-align: center;
+            font-family: 'Courier New', monospace;
         }
         .btn-group {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-left: auto;
         }
         .btn {
-            padding: 8px 20px;
+            padding: 6px 16px;
             border: none;
-            border-radius: 20px;
+            border-radius: 18px;
             font-weight: 500;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             transition: 0.15s;
             font-family: inherit;
@@ -159,9 +159,9 @@
         }
 
         @media (max-width: 768px) {
-            .controls { flex-direction: column; align-items: stretch; }
+            .controls { flex-direction: column; align-items: stretch; gap: 10px; }
             .btn-group { margin-left: 0; justify-content: center; }
-            .control-group input[type="range"] { width: 100px; }
+            .control-group input[type="range"] { width: 100%; }
             .top-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
             .top-bar .nav-links { gap: 18px; flex-wrap: wrap; }
         }
@@ -183,41 +183,66 @@
 
         <div class="sim-title">
             <h1 data-key="title">Double <span>Pendulum</span></h1>
-            <p data-key="subtitle">p5.js · Chaotic motion with permanent trail · Adjustable speed</p>
+            <p data-key="subtitle">p5.js · Chaotic motion with permanent trail · Adjustable initial conditions</p>
         </div>
 
         <div id="canvas-container"></div>
 
+        <!-- 控制面板 -->
         <div class="controls">
+            <!-- 物理参数 -->
             <div class="control-group">
-                <label data-key="label_L1">L₁</label>
+                <label>L₁</label>
                 <input type="range" id="L1Slider" min="80" max="200" value="150" step="1">
                 <span class="value" id="L1Value">150</span>
             </div>
             <div class="control-group">
-                <label data-key="label_L2">L₂</label>
+                <label>L₂</label>
                 <input type="range" id="L2Slider" min="80" max="200" value="120" step="1">
                 <span class="value" id="L2Value">120</span>
             </div>
             <div class="control-group">
-                <label data-key="label_m1">m₁</label>
+                <label>m₁</label>
                 <input type="range" id="m1Slider" min="5" max="40" value="20" step="1">
                 <span class="value" id="m1Value">20</span>
             </div>
             <div class="control-group">
-                <label data-key="label_m2">m₂</label>
+                <label>m₂</label>
                 <input type="range" id="m2Slider" min="5" max="40" value="15" step="1">
                 <span class="value" id="m2Value">15</span>
             </div>
             <div class="control-group">
-                <label data-key="label_speed">Speed</label>
-                <input type="range" id="speedSlider" min="1.0" max="10.0" value="5.0" step="0.1">
-                <span class="value" id="speedValue">5.0x</span>
+                <label>⏱</label>
+                <input type="range" id="speedSlider" min="0.2" max="5.0" value="1.0" step="0.1">
+                <span class="value" id="speedValue">1.0x</span>
             </div>
+
+            <!-- 初始条件 -->
+            <div class="control-group" style="border-left: 2px solid #e6edf4; padding-left: 16px;">
+                <label>θ₁</label>
+                <input type="range" id="theta1InitSlider" min="-180" max="180" value="69" step="1">
+                <span class="value" id="theta1InitValue">69°</span>
+            </div>
+            <div class="control-group">
+                <label>θ₂</label>
+                <input type="range" id="theta2InitSlider" min="-180" max="180" value="-69" step="1">
+                <span class="value" id="theta2InitValue">-69°</span>
+            </div>
+            <div class="control-group">
+                <label>ω₁</label>
+                <input type="range" id="omega1InitSlider" min="-5" max="5" value="0" step="0.1">
+                <span class="value" id="omega1InitValue">0.0</span>
+            </div>
+            <div class="control-group">
+                <label>ω₂</label>
+                <input type="range" id="omega2InitSlider" min="-5" max="5" value="0" step="0.1">
+                <span class="value" id="omega2InitValue">0.0</span>
+            </div>
+
             <div class="btn-group">
-                <button class="btn btn-primary" id="resetBtn" data-key="btn_reset">Reset</button>
-                <button class="btn btn-secondary" id="pauseBtn" data-key="btn_pause">Pause</button>
-                <button class="btn btn-danger" id="clearTrailBtn" data-key="btn_clear">Clear Trail</button>
+                <button class="btn btn-primary" id="applyBtn">Apply</button>
+                <button class="btn btn-secondary" id="pauseBtn">Pause</button>
+                <button class="btn btn-danger" id="clearTrailBtn">Clear Trail</button>
             </div>
         </div>
 
@@ -235,15 +260,7 @@
                 nav_simulations: '仿真',
                 nav_experiment: 'AI 实验分析',
                 title: '双摆',
-                subtitle: 'p5.js · 混沌运动，永久轨迹 · 可调速度',
-                label_L1: '摆长₁',
-                label_L2: '摆长₂',
-                label_m1: '质量₁',
-                label_m2: '质量₂',
-                label_speed: '速度',
-                btn_reset: '重置',
-                btn_pause: '暂停',
-                btn_clear: '清除轨迹',
+                subtitle: 'p5.js · 混沌运动，永久轨迹 · 可调初始条件',
                 footer: 'PhysicsLab · p5.js · 2026'
             },
             en: {
@@ -252,15 +269,7 @@
                 nav_simulations: 'Simulations',
                 nav_experiment: 'AI for Experiment',
                 title: 'Double Pendulum',
-                subtitle: 'p5.js · Chaotic motion with permanent trail · Adjustable speed',
-                label_L1: 'L₁',
-                label_L2: 'L₂',
-                label_m1: 'm₁',
-                label_m2: 'm₂',
-                label_speed: 'Speed',
-                btn_reset: 'Reset',
-                btn_pause: 'Pause',
-                btn_clear: 'Clear Trail',
+                subtitle: 'p5.js · Chaotic motion with permanent trail · Adjustable initial conditions',
                 footer: 'PhysicsLab · p5.js · 2026'
             }
         };
@@ -297,6 +306,7 @@
         //  DOUBLE PENDULUM PHYSICS (p5.js)
         // ============================================================
 
+        // ----- 物理参数 -----
         let L1 = 150,
             L2 = 120;
         let m1 = 20,
@@ -304,30 +314,47 @@
         let g = 0.4;
         let timeScale = 1.0;
 
-        let theta1 = 1.2,
-            theta2 = -1.2;
-        let omega1 = 0,
-            omega2 = 0;
+        // ----- 初始条件（用户可调）-----
+        let theta1Init = radians(69);
+        let theta2Init = radians(-69);
+        let omega1Init = 0;
+        let omega2Init = 0;
+
+        // ----- 当前状态 -----
+        let theta1 = theta1Init;
+        let theta2 = theta2Init;
+        let omega1 = omega1Init;
+        let omega2 = omega2Init;
 
         let x1, y1, x2, y2;
-
         let trail1 = [],
             trail2 = [];
         let paused = false;
         let time = 0;
+        let isInitialized = false;
 
-        // DOM refs
+        // ----- DOM refs -----
         const L1Slider = document.getElementById('L1Slider');
         const L2Slider = document.getElementById('L2Slider');
         const m1Slider = document.getElementById('m1Slider');
         const m2Slider = document.getElementById('m2Slider');
         const speedSlider = document.getElementById('speedSlider');
+        const theta1InitSlider = document.getElementById('theta1InitSlider');
+        const theta2InitSlider = document.getElementById('theta2InitSlider');
+        const omega1InitSlider = document.getElementById('omega1InitSlider');
+        const omega2InitSlider = document.getElementById('omega2InitSlider');
+
         const L1Value = document.getElementById('L1Value');
         const L2Value = document.getElementById('L2Value');
         const m1Value = document.getElementById('m1Value');
         const m2Value = document.getElementById('m2Value');
         const speedValue = document.getElementById('speedValue');
-        const resetBtn = document.getElementById('resetBtn');
+        const theta1InitValue = document.getElementById('theta1InitValue');
+        const theta2InitValue = document.getElementById('theta2InitValue');
+        const omega1InitValue = document.getElementById('omega1InitValue');
+        const omega2InitValue = document.getElementById('omega2InitValue');
+
+        const applyBtn = document.getElementById('applyBtn');
         const pauseBtn = document.getElementById('pauseBtn');
         const clearTrailBtn = document.getElementById('clearTrailBtn');
 
@@ -355,6 +382,49 @@
         }
 
         // ============================================================
+        //  INITIALIZATION
+        // ============================================================
+
+        function applyInitialConditions() {
+            // 读取滑块值
+            theta1Init = radians(parseFloat(theta1InitSlider.value));
+            theta2Init = radians(parseFloat(theta2InitSlider.value));
+            omega1Init = parseFloat(omega1InitSlider.value);
+            omega2Init = parseFloat(omega2InitSlider.value);
+
+            // 更新显示
+            theta1InitValue.textContent = parseFloat(theta1InitSlider.value).toFixed(0) + '°';
+            theta2InitValue.textContent = parseFloat(theta2InitSlider.value).toFixed(0) + '°';
+            omega1InitValue.textContent = omega1Init.toFixed(1);
+            omega2InitValue.textContent = omega2Init.toFixed(1);
+
+            // 重置状态
+            theta1 = theta1Init;
+            theta2 = theta2Init;
+            omega1 = omega1Init;
+            omega2 = omega2Init;
+            trail1 = [];
+            trail2 = [];
+            time = 0;
+            paused = false;
+            pauseBtn.textContent = 'Pause';
+
+            // 更新位置
+            x1 = originX + L1 * sin(theta1);
+            y1 = originY + L1 * cos(theta1);
+            x2 = x1 + L2 * sin(theta2);
+            y2 = y1 + L2 * cos(theta2);
+            trail1.push({ x: x1, y: y1 });
+            trail2.push({ x: x2, y: y2 });
+
+            isInitialized = true;
+        }
+
+        function resetPendulum() {
+            applyInitialConditions();
+        }
+
+        // ============================================================
         //  p5.js
         // ============================================================
 
@@ -364,33 +434,45 @@
             canvas.parent('canvas-container');
             originX = width / 2;
             originY = 280;
-            resetPendulum();
 
+            // 物理参数滑块
             L1Slider.addEventListener('input', function() {
                 L1 = parseFloat(this.value);
                 L1Value.textContent = L1;
-                resetPendulum();
             });
             L2Slider.addEventListener('input', function() {
                 L2 = parseFloat(this.value);
                 L2Value.textContent = L2;
-                resetPendulum();
             });
             m1Slider.addEventListener('input', function() {
                 m1 = parseFloat(this.value);
                 m1Value.textContent = m1;
-                resetPendulum();
             });
             m2Slider.addEventListener('input', function() {
                 m2 = parseFloat(this.value);
                 m2Value.textContent = m2;
-                resetPendulum();
             });
             speedSlider.addEventListener('input', function() {
                 timeScale = parseFloat(this.value);
                 speedValue.textContent = timeScale.toFixed(1) + 'x';
             });
-            resetBtn.addEventListener('click', resetPendulum);
+
+            // 初始条件滑块 - 实时更新显示值
+            theta1InitSlider.addEventListener('input', function() {
+                theta1InitValue.textContent = parseFloat(this.value).toFixed(0) + '°';
+            });
+            theta2InitSlider.addEventListener('input', function() {
+                theta2InitValue.textContent = parseFloat(this.value).toFixed(0) + '°';
+            });
+            omega1InitSlider.addEventListener('input', function() {
+                omega1InitValue.textContent = parseFloat(this.value).toFixed(1);
+            });
+            omega2InitSlider.addEventListener('input', function() {
+                omega2InitValue.textContent = parseFloat(this.value).toFixed(1);
+            });
+
+            // 按钮事件
+            applyBtn.addEventListener('click', resetPendulum);
             pauseBtn.addEventListener('click', function() {
                 paused = !paused;
                 this.textContent = paused ? 'Resume' : 'Pause';
@@ -399,28 +481,16 @@
                 trail1 = [];
                 trail2 = [];
             });
-        }
 
-        function resetPendulum() {
-            theta1 = 1.2;
-            theta2 = -1.2;
-            omega1 = 0;
-            omega2 = 0;
-            trail1 = [];
-            trail2 = [];
-            time = 0;
-            x1 = originX + L1 * sin(theta1);
-            y1 = originY + L1 * cos(theta1);
-            x2 = x1 + L2 * sin(theta2);
-            y2 = y1 + L2 * cos(theta2);
-            trail1.push({ x: x1, y: y1 });
-            trail2.push({ x: x2, y: y2 });
+            // 初始应用
+            applyInitialConditions();
         }
 
         function draw() {
             background('#fafcff');
 
-            if (!paused) {
+            // 物理更新
+            if (!paused && isInitialized) {
                 const dt = 0.04 * timeScale;
                 time += dt;
                 const [a1, a2] = computeAccelerations(theta1, theta2, omega1, omega2);
@@ -436,8 +506,75 @@
 
                 trail1.push({ x: x1, y: y1 });
                 trail2.push({ x: x2, y: y2 });
+                // 永久轨迹，不限制长度
             }
 
+            // ----- 绘制轨迹 -----
+            drawTrail();
+
+            // ----- 绘制杆 -----
+            push();
+            stroke(40, 50, 70);
+            strokeWeight(2);
+            line(originX, originY, x1, y1);
+            line(x1, y1, x2, y2);
+            pop();
+
+            // ----- 绘制支点 -----
+            push();
+            fill(40, 50, 70);
+            noStroke();
+            ellipse(originX, originY, 12, 12);
+            stroke(40, 50, 70);
+            strokeWeight(1);
+            line(originX - 16, originY, originX + 16, originY);
+            line(originX, originY - 16, originX, originY + 16);
+            pop();
+
+            // ----- 绘制质量块 -----
+            push();
+            noStroke();
+            fill(45, 120, 255);
+            ellipse(x1, y1, m1 * 1.2, m1 * 1.2);
+            fill(255, 107, 53);
+            ellipse(x2, y2, m2 * 1.2, m2 * 1.2);
+            pop();
+
+            // ----- 标签 -----
+            push();
+            fill(40, 50, 70);
+            noStroke();
+            textSize(13);
+            textAlign(LEFT, BOTTOM);
+            text('m₁', x1 + 14, y1 - 4);
+            text('m₂', x2 + 14, y2 - 4);
+            textAlign(RIGHT, TOP);
+            text('Time: ' + time.toFixed(1) + ' s  |  Speed: ' + timeScale.toFixed(1) + 'x  |  Trail: ' + trail1.length +
+                ' pts', width - 16, 16);
+            pop();
+
+            // ----- 显示初始条件信息 -----
+            push();
+            fill(100, 110, 130);
+            noStroke();
+            textSize(12);
+            textAlign(LEFT, TOP);
+            text('θ₁₀ = ' + degrees(theta1Init).toFixed(0) + '°  |  θ₂₀ = ' + degrees(theta2Init).toFixed(0) +
+                '°  |  ω₁₀ = ' + omega1Init.toFixed(1) + '  |  ω₂₀ = ' + omega2Init.toFixed(1), 16, 16);
+            pop();
+
+            // ----- 底部提示 -----
+            push();
+            fill(100, 110, 130);
+            noStroke();
+            textSize(12);
+            textAlign(CENTER, BOTTOM);
+            text('Permanent trail · Click "Clear Trail" to erase · Adjust initial conditions and click "Apply"', width / 2,
+                height - 8);
+            pop();
+        }
+
+        function drawTrail() {
             push();
             noFill();
             if (trail1.length > 1) {
@@ -459,54 +596,6 @@
                     strokeWeight(1.2);
                     line(trail2[i - 1].x, trail2[i - 1].y, trail2[i].x, trail2[i].y);
                 }
-            }
-            pop();
-
-            push();
-            stroke(40, 50, 70);
-            strokeWeight(2);
-            line(originX, originY, x1, y1);
-            line(x1, y1, x2, y2);
-            pop();
-
-            push();
-            fill(40, 50, 70);
-            noStroke();
-            ellipse(originX, originY, 12, 12);
-            stroke(40, 50, 70);
-            strokeWeight(1);
-            line(originX - 16, originY, originX + 16, originY);
-            line(originX, originY - 16, originX, originY + 16);
-            pop();
-
-            push();
-            noStroke();
-            fill(45, 120, 255);
-            ellipse(x1, y1, m1 * 1.2, m1 * 1.2);
-            fill(255, 107, 53);
-            ellipse(x2, y2, m2 * 1.2, m2 * 1.2);
-            pop();
-
-            push();
-            fill(40, 50, 70);
-            noStroke();
-            textSize(13);
-            textAlign(LEFT, BOTTOM);
-            text('m₁', x1 + 14, y1 - 4);
-            text('m₂', x2 + 14, y2 - 4);
-            textAlign(RIGHT, TOP);
-            text('Time: ' + time.toFixed(1) + ' s  |  Speed: ' + timeScale.toFixed(1) + 'x  |  Trail: ' + trail1.length +
-                ' pts', width - 16, 16);
-            pop();
-
-            push();
-            fill(100, 110, 130);
-            noStroke();
-            textSize(12);
-            textAlign(CENTER, BOTTOM);
-            const totalPts = trail1.length + trail2.length;
-            if (totalPts > 0) {
-                text('Permanent trail · Click "Clear Trail" to erase', width / 2, height - 8);
             }
             pop();
         }
