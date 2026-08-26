@@ -84,12 +84,15 @@
             border: 1px solid #eef3f8;
             padding: 10px;
             margin-bottom: 16px;
-            overflow: hidden;
+            min-height: 400px;
+            align-items: center;
         }
         #canvas-container canvas {
             display: block;
             border-radius: 10px;
             background: white;
+            width: 100% !important;
+            height: auto !important;
         }
 
         .controls {
@@ -314,17 +317,15 @@
         let g = 0.4;
         let timeScale = 1.0;
 
-        // ----- 初始条件 -----
-        let theta1Init = radians(69);
-        let theta2Init = radians(-69);
+        // ----- 初始条件（只声明，不调用 p5 函数）-----
+        let theta1Init, theta2Init;
         let omega1Init = 0;
         let omega2Init = 0;
 
         // ----- 当前状态 -----
-        let theta1 = theta1Init;
-        let theta2 = theta2Init;
-        let omega1 = omega1Init;
-        let omega2 = omega2Init;
+        let theta1, theta2;
+        let omega1 = 0,
+            omega2 = 0;
 
         let x1, y1, x2, y2;
         let trail1 = [],
@@ -386,17 +387,13 @@
         // ============================================================
 
         function velocityVerlet(dt) {
-            // 1. 计算当前加速度
             const [a1, a2] = computeAccelerations(theta1, theta2, omega1, omega2);
 
-            // 2. 更新位置
             theta1 += omega1 * dt + 0.5 * a1 * dt * dt;
             theta2 += omega2 * dt + 0.5 * a2 * dt * dt;
 
-            // 3. 计算新加速度（使用预测的速度）
             const [a1_new, a2_new] = computeAccelerations(theta1, theta2, omega1 + a1 * dt, omega2 + a2 * dt);
 
-            // 4. 更新速度
             omega1 += 0.5 * (a1 + a1_new) * dt;
             omega2 += 0.5 * (a2 + a2_new) * dt;
         }
@@ -406,6 +403,7 @@
         // ============================================================
 
         function applyInitialConditions() {
+            // 在函数内部调用 p5 函数是安全的
             theta1Init = radians(parseFloat(theta1InitSlider.value));
             theta2Init = radians(parseFloat(theta2InitSlider.value));
             omega1Init = parseFloat(omega1InitSlider.value);
@@ -426,7 +424,6 @@
             paused = false;
             pauseBtn.textContent = 'Pause';
 
-            // 计算初始位置
             x1 = originX + L1 * sin(theta1);
             y1 = originY + L1 * cos(theta1);
             x2 = x1 + L2 * sin(theta2);
@@ -447,10 +444,14 @@
 
         function setup() {
             pixelDensity(1);
-            const canvas = createCanvas(800, 800);
+
+            const canvas = createCanvas(780, 600);
             canvas.parent('canvas-container');
+
+            console.log('Canvas created:', canvas.width, 'x', canvas.height);
+
             originX = width / 2;
-            originY = 280;
+            originY = 180;
 
             // --- 物理参数滑块 ---
             L1Slider.addEventListener('input', function() {
@@ -501,18 +502,19 @@
 
             // --- 初始应用 ---
             applyInitialConditions();
+
+            console.log('Setup complete. originX:', originX, 'originY:', originY);
+            console.log('Initial theta1:', theta1, 'theta2:', theta2);
         }
 
         function draw() {
             background('#fafcff');
 
-            // ----- 物理更新 (Velocity Verlet) -----
             if (!paused && isInitialized) {
                 const dt = 0.02 * timeScale;
                 time += dt;
                 velocityVerlet(dt);
 
-                // 更新位置
                 x1 = originX + L1 * sin(theta1);
                 y1 = originY + L1 * cos(theta1);
                 x2 = x1 + L2 * sin(theta2);
@@ -522,10 +524,8 @@
                 trail2.push({ x: x2, y: y2 });
             }
 
-            // ----- 绘制轨迹 -----
             drawTrails();
 
-            // ----- 绘制杆 -----
             push();
             stroke(40, 50, 70);
             strokeWeight(2);
@@ -533,7 +533,6 @@
             line(x1, y1, x2, y2);
             pop();
 
-            // ----- 绘制支点 -----
             push();
             fill(40, 50, 70);
             noStroke();
@@ -544,7 +543,6 @@
             line(originX, originY - 16, originX, originY + 16);
             pop();
 
-            // ----- 绘制质量块 -----
             push();
             noStroke();
             fill(45, 120, 255);
@@ -553,7 +551,6 @@
             ellipse(x2, y2, m2 * 1.2, m2 * 1.2);
             pop();
 
-            // ----- 标签 -----
             push();
             fill(40, 50, 70);
             noStroke();
@@ -566,7 +563,6 @@
                 ' pts', width - 16, 16);
             pop();
 
-            // ----- 初始条件信息 -----
             push();
             fill(100, 110, 130);
             noStroke();
@@ -576,7 +572,6 @@
                 '°  |  ω₁₀ = ' + omega1Init.toFixed(1) + '  |  ω₂₀ = ' + omega2Init.toFixed(1), 16, 16);
             pop();
 
-            // ----- 底部提示 -----
             push();
             fill(100, 110, 130);
             noStroke();
@@ -588,7 +583,6 @@
         }
 
         function drawTrails() {
-            // 轨迹1 (m1) - 蓝色
             push();
             noFill();
             if (trail1.length > 1) {
@@ -601,7 +595,6 @@
             }
             pop();
 
-            // 轨迹2 (m2) - 橙色
             push();
             noFill();
             if (trail2.length > 1) {
