@@ -847,6 +847,8 @@
 
                 const results = await model.predict(video);
 
+                console.log('模型输出:', results);
+
                 if (results.keypoints && results.keypoints.length > 0) {
                     const kps = results.keypoints[0];
                     if (kps && kps.length >= 2) {
