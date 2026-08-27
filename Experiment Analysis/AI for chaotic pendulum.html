@@ -522,6 +522,10 @@
         let prevTheta = 0;
         let prevTime = 0;
         let isFirstFrame = true;
+        let lastValidTime = 0;          // 最近一次成功检测到双点的时间（秒）
+        let lastFrameTimeMs = 0;        // 用于逐帧 FPS 统计
+        let fpsSmooth = 0;
+        let detectionDebugLogged = false;
 
         // 关键点
         let centralPoint = null;
@@ -580,11 +584,79 @@
             return diff / dt;
         }
 
+        // 将角度连续展开，避免 atan2 在 ±π 处跳变（旋转摆跨越 ±π 时必需）
+        function unwrapAngle(rawTheta, prevTheta) {
+            let a = rawTheta;
+            while (a - prevTheta > Math.PI) a -= 2 * Math.PI;
+            while (a - prevTheta < -Math.PI) a += 2 * Math.PI;
+            return a;
+        }
+
+        // 把 @ultralytics/yolo 返回的检测框统一解析为 {x1,y1,x2,y2,score,cls}
+        // 兼容：框为数组 [x1,y1,x2,y2,score,cls]，或对象 {box/bbox/xyxy, score/confidence, class/cls/class_id}
+        function extractBoxes(result) {
+            if (!result) return [];
+            const raw = result.boxes || result.predictions || result.detections;
+            if (!Array.isArray(raw)) return [];
+
+            const boxes = [];
+            for (const b of raw) {
+                let arr = b;
+                let score = 0;
+                let cls = 0;
+                if (b && typeof b === 'object' && !Array.isArray(b)) {
+                    arr = b.box || b.bbox || b.xyxy || [b.x1, b.y1, b.x2, b.y2];
+                    score = (b.score !== undefined ? b.score : b.confidence) || 0;
+                    cls = (b.class !== undefined ? b.class : (b.cls !== undefined ? b.cls : b.class_id)) ?? 0;
+                } else if (Array.isArray(arr)) {
+                    score = arr[4] || 0;
+                    cls = arr[5] ?? 0;
+                }
+                if (!Array.isArray(arr) || arr.length < 4) continue;
+                const [x1, y1, x2, y2] = arr;
+                if (![x1, y1, x2, y2].every(Number.isFinite)) continue;
+                boxes.push({ x1, y1, x2, y2, score, cls });
+            }
+            return boxes;
+        }
+
+        // 归一化(0~1)坐标 -> 画布像素坐标；像素坐标则原样使用
+        function boxToCanvasPoint(box, w, h) {
+            const cx = (box.x1 + box.x2) / 2;
+            const cy = (box.y1 + box.y2) / 2;
+            const maxC = Math.max(box.x1, box.y1, box.x2, box.y2);
+            if (maxC <= 1.5) {
+                return { x: cx * w, y: cy * h };
+            }
+            return { x: cx, y: cy };
+        }
+
+        // 挑选两个关键点：优先取两个不同类别中置信度最高的框，否则取置信度最高的两个
+        function pickKeypoints(boxes, w, h) {
+            if (boxes.length === 0) return { center: null, key: null };
+
+            const byClass = new Map();
+            for (const b of boxes) {
+                const prev = byClass.get(b.cls);
+                if (!prev || b.score > prev.score) byClass.set(b.cls, b);
+            }
+
+            let selected;
+            if (byClass.size >= 2) {
+                selected = [...byClass.values()].sort((a, b) => b.score - a.score).slice(0, 2);
+            } else {
+                selected = boxes.slice().sort((a, b) => b.score - a.score).slice(0, 2);
+            }
+
+            const pts = selected.map(b => boxToCanvasPoint(b, w, h));
+            return { center: pts[0] || null, key: pts[1] || null };
+        }
+
         // ============================================================
         //  WOLF ALGORITHM
         // ============================================================
 
-        function wolfLyapunov(timeSeries, embeddingDim = 3, delay = 1, maxSteps = 100) {
+        function wolfLyapunov(timeSeries, embeddingDim = 3, delay = 1, maxSteps = 100, dt = 1 / 30) {
             if (timeSeries.length < 50) return null;
 
             const N = timeSeries.length;
@@ -714,7 +786,7 @@
             }
 
             if (lyapunovCount === 0) return null;
-            return lyapunovSum / (lyapunovCount * (1 / 30));
+            return lyapunovSum / (lyapunovCount * dt);
         }
 
         // ============================================================
@@ -800,10 +872,15 @@
                 sampled.push(thetaHistory[i * step]);
             }
 
-            const lle = wolfLyapunov(sampled, 3, 1, 50);
+            // 使用实际平均采样间隔，而不是固定假设 30 FPS
+            const avgDt = timeHistory.length > 1
+                ? (timeHistory[timeHistory.length - 1] - timeHistory[0]) / (timeHistory.length - 1)
+                : 1 / 30;
+            const lle = wolfLyapunov(sampled, 3, 1, 50, avgDt);
 
             if (lle !== null) {
-                const lleVal = Math.abs(lle);
+                // 使用带符号 LLE：负值表示周期/稳定，接近 0 表示弱混沌，正值表示混沌
+                const lleVal = lle;
                 lleDisplay.textContent = lleVal.toFixed(4);
                 lleBadge.textContent = 'LLE: ' + lleVal.toFixed(4);
 
@@ -846,34 +923,24 @@
                     log('Start time initialized: ' + startTime.toFixed(2) + 's', 'info');
                 }
 
-                const results = await model.predict(video, { conf: 0.1 });
+                const rawResults = await model.predict(video, { conf: 0.1 });
+                // 该库对单个输入可能返回数组或单个结果对象，统一处理
+                const result = Array.isArray(rawResults) ? (rawResults[0] || {}) : rawResults;
 
-                let center = null;
-                let key = null;
+                if (!detectionDebugLogged) {
+                    detectionDebugLogged = true;
+                    const keys = result && typeof result === 'object' ? Object.keys(result).join(', ') : String(typeof result);
+                    const boxesInfo = result && result.boxes
+                        ? (Array.isArray(result.boxes) ? 'array(' + result.boxes.length + ')' : typeof result.boxes)
+                        : 'none';
+                    log('YOLO result keys: ' + keys + ' | boxes: ' + boxesInfo, 'info');
+                }
 
                 // ===== 从检测框提取两个关键点 =====
-                if (results.boxes && results.boxes.length >= 2) {
-                    const boxes = results.boxes;
-                    for (let i = 0; i < Math.min(boxes.length, 2); i++) {
-                        const box = boxes[i];
-                        const cx = (box[0] + box[2]) / 2;
-                        const cy = (box[1] + box[3]) / 2;
-                        const px = cx * canvas.width;
-                        const py = cy * canvas.height;
-                        if (i === 0) {
-                            center = { x: px, y: py };
-                        } else {
-                            key = { x: px, y: py };
-                        }
-                    }
-                } else if (results.boxes && results.boxes.length === 1) {
-                    // 只有一个检测框，只设置 center
-                    const box = results.boxes[0];
-                    const cx = (box[0] + box[2]) / 2;
-                    const cy = (box[1] + box[3]) / 2;
-                    center = { x: cx * canvas.width, y: cy * canvas.height };
-                    key = null;
-                }
+                const boxes = extractBoxes(result);
+                const points = pickKeypoints(boxes, canvas.width, canvas.height);
+                const center = points.center;
+                const key = points.key;
 
                 // ===== 只有检测到两个有效关键点时，才进行数据存储 =====
                 if (center !== null && key !== null) {
@@ -884,7 +951,16 @@
                         pivotPoint = { x: canvas.width / 2, y: 60 };
                     }
 
-                    const theta = calculateAngle(center, key);
+                    const rawTheta = calculateAngle(center, key);
+
+                    // 检测中断超过 0.5 秒后，下一帧重新建立角度基线，避免产生错误的角速度
+                    if (!isFirstFrame && lastValidTime > 0 && now - lastValidTime > 0.5) {
+                        isFirstFrame = true;
+                    }
+                    lastValidTime = now;
+
+                    // 展开角度，保证旋转摆跨越 ±π 时角度连续
+                    const theta = isFirstFrame ? rawTheta : unwrapAngle(rawTheta, prevTheta);
                     currentTheta = theta;
 
                     if (!isFirstFrame) {
@@ -907,8 +983,8 @@
                     omegaHistory.push(currentOmega);
                     timeHistory.push(elapsedTime);
 
-                    // 更新显示
-                    angleDisplay.textContent = (theta * 180 / Math.PI).toFixed(2) + ' deg';
+                    // 更新显示（角度显示使用 ±180° 内的直观角度，数据存储使用展开角度）
+                    angleDisplay.textContent = (rawTheta * 180 / Math.PI).toFixed(2) + ' deg';
                     omegaDisplay.textContent = currentOmega.toFixed(3) + ' rad/s';
                     pointCount.textContent = thetaHistory.length;
                     dataPointsDisplay.textContent = thetaHistory.length;
@@ -926,7 +1002,7 @@
                     
                 } else {
                     // ===== 没有检测到两个关键点，显示提示 =====
-                    const detected = results.boxes ? results.boxes.length : 0;
+                    const detected = boxes.length;
                     if (ctx) {
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
                         ctx.font = '18px sans-serif';
@@ -937,11 +1013,19 @@
                     // 不存储数据，保持显示不变
                 }
 
-                // FPS
+                // FPS（逐帧计算，避免显示为总时间倒数）
                 frameCount++;
-                const elapsed = (performance.now() - startTime * 1000) / 1000;
-                if (frameCount % 10 === 0 && elapsed > 0) {
-                    fpsBadge.textContent = Math.round(1 / elapsed) + ' FPS';
+                const nowMs = performance.now();
+                if (lastFrameTimeMs > 0) {
+                    const frameDt = nowMs - lastFrameTimeMs;
+                    if (frameDt > 0) {
+                        const instFps = 1000 / frameDt;
+                        fpsSmooth = fpsSmooth === 0 ? instFps : fpsSmooth * 0.8 + instFps * 0.2;
+                    }
+                }
+                lastFrameTimeMs = nowMs;
+                if (frameCount % 10 === 0) {
+                    fpsBadge.textContent = Math.round(fpsSmooth) + ' FPS';
                 }
 
             } catch (err) {
@@ -1062,9 +1146,11 @@
                 return;
             }
 
-            let csv = 'time,theta_rad,omega_rads\n';
+            let csv = 'time,theta_rad,theta_deg,omega_rads\n';
             for (let i = 0; i < thetaHistory.length; i++) {
-                csv += (timeHistory[i] || 0) + ',' + thetaHistory[i] + ',' + (omegaHistory[i] || 0) + '\n';
+                const t = timeHistory[i] || 0;
+                const th = thetaHistory[i];
+                csv += t + ',' + th + ',' + (th * 180 / Math.PI).toFixed(4) + ',' + (omegaHistory[i] || 0) + '\n';
             }
 
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -1087,6 +1173,11 @@
             timeHistory = [];
             startTime = 0;
             isFirstFrame = true;
+            lastValidTime = 0;
+            prevTheta = 0;
+            prevTime = 0;
+            lastFrameTimeMs = 0;
+            fpsSmooth = 0;
             currentTheta = 0;
             currentOmega = 0;
             wolfState.lyapunovSum = 0;
@@ -1158,9 +1249,24 @@
 
                 log('Loading YOLO model...', 'info');
                 console.log('Loading model...');
-                model = await YOLO.load('../Models/yolov8n.onnx');
-                console.log('Model loaded successfully');
-                log('YOLO model loaded successfully!', 'info');
+                // GitHub 仓库中页面位于子目录、模型位于 ../Models/；本地调试时模型与页面同目录
+                const modelCandidates = ['../Models/yolov8n.onnx', './yolov8n.onnx', 'Models/yolov8n.onnx'];
+                let modelError = null;
+                for (const candidate of modelCandidates) {
+                    try {
+                        model = await YOLO.load(candidate);
+                        console.log('Model loaded from:', candidate);
+                        log('YOLO model loaded: ' + candidate, 'info');
+                        break;
+                    } catch (e) {
+                        modelError = e;
+                        console.warn('Model load failed:', candidate, e);
+                    }
+                }
+                if (!model) {
+                    log('Failed to load YOLO model: ' + (modelError && modelError.message), 'error');
+                    throw modelError || new Error('Model not found');
+                }
 
                 isRunning = true;
                 statusDot.className = 'status-dot on';
@@ -1169,6 +1275,9 @@
                 stopBtn.disabled = false;
 
                 pivotPoint = { x: canvas.width / 2, y: 60 };
+                lastFrameTimeMs = 0;
+                fpsSmooth = 0;
+                detectionDebugLogged = false;
 
                 log('Camera started. Detection running.', 'info');
                 inferenceLoop();
