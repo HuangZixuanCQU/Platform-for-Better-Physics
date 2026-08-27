@@ -846,7 +846,7 @@
                     log('Start time initialized: ' + startTime.toFixed(2) + 's', 'info');
                 }
 
-                const results = await model.predict(video);
+                const results = await model.predict(video, { conf: 0.1 });
 
                 let center = null;
                 let key = null;
