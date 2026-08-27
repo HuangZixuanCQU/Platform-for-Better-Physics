@@ -14,6 +14,7 @@
     </script>
 
     <style>
+        /* ... 样式保持不变，与之前相同 ... */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -512,9 +513,8 @@
         let thetaHistory = [];
         let omegaHistory = [];
         let timeHistory = [];
-        let startTime = 0;
+        let startTime = 0;  // 初始为 0，第一次运行时设置
         let frameCount = 0;
-        let lastFpsUpdate = 0;
 
         // Current values
         let currentTheta = 0;
@@ -523,10 +523,10 @@
         let prevTime = 0;
         let isFirstFrame = true;
 
-        // 关键点 - 适应金属摆盘
-        let centralPoint = null;   // 摆盘中心（转轴）
-        let keyPoint = null;       // 质量分布不均匀的特征点
-        let pivotPoint = null;     // 固定支点（用于参考）
+        // 关键点
+        let centralPoint = null;
+        let keyPoint = null;
+        let pivotPoint = null;
 
         // Phase plot
         let phaseChart = null;
@@ -565,10 +565,6 @@
         //  PHYSICS CALCULATIONS
         // ============================================================
 
-        /**
-         * 计算从 centralPoint 到 keyPoint 的向量角度
-         * 角度定义：从中心指向特征点的方向，0° 为水平向右
-         */
         function calculateAngle(center, key) {
             if (!center || !key) return 0;
             const dx = key.x - center.x;
@@ -830,7 +826,7 @@
         }
 
         // ============================================================
-        //  YOLO INFERENCE LOOP - 适配金属摆盘 (central_point + key_point)
+        //  YOLO INFERENCE LOOP - 修复版
         // ============================================================
 
         async function inferenceLoop() {
@@ -842,18 +838,20 @@
             }
 
             try {
-                const startTime = performance.now();
+                const now = performance.now() / 1000;
+                
+                // 初始化 startTime（只在第一次运行时设置）
+                if (startTime === 0) {
+                    startTime = now;
+                    log('Start time initialized: ' + startTime.toFixed(2) + 's', 'info');
+                }
 
                 const results = await model.predict(video);
 
-                // ============================================================
-                //  从检测框 (boxes) 提取两个关键点：
-                //  第一个检测框 → central_point (摆盘中心/转轴)
-                //  第二个检测框 → key_point (质量分布不均匀的特征点)
-                // ============================================================
                 let center = null;
                 let key = null;
 
+                // ===== 从检测框提取两个关键点 =====
                 if (results.boxes && results.boxes.length >= 2) {
                     const boxes = results.boxes;
                     for (let i = 0; i < Math.min(boxes.length, 2); i++) {
@@ -869,34 +867,33 @@
                         }
                     }
                 } else if (results.boxes && results.boxes.length === 1) {
-                    // 只有一个检测框，用其中心点作为 central_point
+                    // 只有一个检测框，只设置 center
                     const box = results.boxes[0];
                     const cx = (box[0] + box[2]) / 2;
                     const cy = (box[1] + box[3]) / 2;
                     center = { x: cx * canvas.width, y: cy * canvas.height };
-                    // 模拟 key_point（偏移一点）
-                    key = { x: center.x + 40, y: center.y + 30 };
+                    key = null;
                 }
 
-                // 如果检测到至少一个点，进行后续处理
-                if (center && key) {
+                // ===== 只有检测到两个有效关键点时，才进行数据存储 =====
+                if (center !== null && key !== null) {
                     centralPoint = center;
                     keyPoint = key;
 
-                    // 固定支点（用于参考显示）
                     if (!pivotPoint) {
                         pivotPoint = { x: canvas.width / 2, y: 60 };
                     }
 
-                    // 计算角度：从 central_point 到 key_point 的向量角度
                     const theta = calculateAngle(center, key);
                     currentTheta = theta;
 
-                    // 计算角速度
-                    const now = performance.now() / 1000;
                     if (!isFirstFrame) {
                         const dt = now - prevTime;
-                        currentOmega = calculateOmega(theta, prevTheta, dt);
+                        if (dt > 0.001) {
+                            currentOmega = calculateOmega(theta, prevTheta, dt);
+                        } else {
+                            currentOmega = 0;
+                        }
                     } else {
                         currentOmega = 0;
                         isFirstFrame = false;
@@ -904,44 +901,46 @@
                     prevTheta = theta;
                     prevTime = now;
 
-                    // 存储数据
+                    // ===== 只存储有效数据 =====
+                    const elapsedTime = now - startTime;
                     thetaHistory.push(theta);
                     omegaHistory.push(currentOmega);
-                    timeHistory.push(now - startTime);
+                    timeHistory.push(elapsedTime);
 
                     // 更新显示
                     angleDisplay.textContent = (theta * 180 / Math.PI).toFixed(2) + ' deg';
                     omegaDisplay.textContent = currentOmega.toFixed(3) + ' rad/s';
                     pointCount.textContent = thetaHistory.length;
                     dataPointsDisplay.textContent = thetaHistory.length;
-                    timeDisplay.textContent = (now - startTime).toFixed(2);
+                    timeDisplay.textContent = elapsedTime.toFixed(2);
 
-                    // 更新相图
                     if (frameCount % 5 === 0) {
                         updatePhasePlot();
                     }
 
-                    // 更新LLE
                     if (frameCount % 30 === 0 && thetaHistory.length > 50) {
                         updateLLE();
                     }
 
-                    // 绘制关键点
                     drawPose(center, key, pivotPoint);
+                    
                 } else {
-                    // 没有检测到足够的框，显示提示
+                    // ===== 没有检测到两个关键点，显示提示 =====
+                    const detected = results.boxes ? results.boxes.length : 0;
                     if (ctx) {
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
                         ctx.font = '18px sans-serif';
                         ctx.textAlign = 'center';
-                        ctx.fillText('等待检测到摆盘中心和质量点...', canvas.width / 2, 40);
+                        ctx.fillText('检测到 ' + detected + ' 个目标，需要至少2个 (中心点 + 特征点)', canvas.width / 2, 40);
                     }
+                    
+                    // 不存储数据，保持显示不变
                 }
 
                 // FPS
                 frameCount++;
-                const elapsed = (performance.now() - startTime) / 1000;
-                if (frameCount % 10 === 0) {
+                const elapsed = (performance.now() - startTime * 1000) / 1000;
+                if (frameCount % 10 === 0 && elapsed > 0) {
                     fpsBadge.textContent = Math.round(1 / elapsed) + ' FPS';
                 }
 
@@ -956,7 +955,7 @@
         }
 
         // ============================================================
-        //  DRAW POSE ON CANVAS - 金属摆盘可视化
+        //  DRAW POSE ON CANVAS
         // ============================================================
 
         function drawPose(center, key, pivot) {
@@ -965,10 +964,7 @@
             const w = canvas.width;
             const h = canvas.height;
 
-            // 不清理画布，保留视频背景
-
             // ---- 绘制摆盘 ----
-            // 1. 绘制摆盘圆形 (中心)
             const radius = 50;
             ctx.beginPath();
             ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
@@ -980,7 +976,7 @@
             ctx.fillStyle = 'rgba(59, 130, 246, 0.15)';
             ctx.fill();
 
-            // 2. 绘制转轴中心点 (central_point)
+            // 转轴中心点
             ctx.beginPath();
             ctx.arc(center.x, center.y, 8, 0, 2 * Math.PI);
             ctx.fillStyle = '#3b82f6';
@@ -989,7 +985,7 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // 3. 绘制中心十字
+            // 中心十字
             ctx.beginPath();
             ctx.moveTo(center.x - 16, center.y);
             ctx.lineTo(center.x + 16, center.y);
@@ -999,7 +995,7 @@
             ctx.lineWidth = 1.5;
             ctx.stroke();
 
-            // 4. 绘制特征点 (key_point)
+            // 特征点
             ctx.beginPath();
             ctx.arc(key.x, key.y, 8, 0, 2 * Math.PI);
             ctx.fillStyle = '#f59e0b';
@@ -1008,7 +1004,7 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // 5. 从中心到特征点的连线 (表示摆角)
+            // 从中心到特征点的连线
             ctx.beginPath();
             ctx.moveTo(center.x, center.y);
             ctx.lineTo(key.x, key.y);
@@ -1016,7 +1012,7 @@
             ctx.lineWidth = 2.5;
             ctx.stroke();
 
-            // 6. 角度弧
+            // 角度弧
             const theta = calculateAngle(center, key);
             const arcRadius = 40;
             ctx.beginPath();
@@ -1027,7 +1023,7 @@
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // 7. 角度标签
+            // 角度标签
             const labelAngle = theta / 2;
             const labelX = center.x + (arcRadius + 16) * Math.cos(labelAngle);
             const labelY = center.y + (arcRadius + 16) * Math.sin(labelAngle);
@@ -1037,15 +1033,15 @@
             ctx.textBaseline = 'middle';
             ctx.fillText('θ = ' + (theta * 180 / Math.PI).toFixed(1) + '°', labelX, labelY);
 
-            // ---- 标签 ----
+            // 标签
             ctx.fillStyle = '#ffffff';
             ctx.font = '13px sans-serif';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'bottom';
-            ctx.fillText('central_point', center.x + 16, center.y - 8);
-            ctx.fillText('key_point', key.x + 16, key.y - 8);
+            ctx.fillText('center', center.x + 16, center.y - 8);
+            ctx.fillText('key', key.x + 16, key.y - 8);
 
-            // ---- 信息面板 ----
+            // 信息面板
             ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
             ctx.roundRect(8, 8, 200, 30, 8);
             ctx.fill();
@@ -1068,7 +1064,7 @@
 
             let csv = 'time,theta_rad,omega_rads\n';
             for (let i = 0; i < thetaHistory.length; i++) {
-                csv += (timeHistory[i] || i / 30) + ',' + thetaHistory[i] + ',' + (omegaHistory[i] || 0) + '\n';
+                csv += (timeHistory[i] || 0) + ',' + thetaHistory[i] + ',' + (omegaHistory[i] || 0) + '\n';
             }
 
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -1089,6 +1085,7 @@
             thetaHistory = [];
             omegaHistory = [];
             timeHistory = [];
+            startTime = 0;
             isFirstFrame = true;
             currentTheta = 0;
             currentOmega = 0;
@@ -1105,6 +1102,12 @@
             lleBadge.textContent = 'LLE: --';
             chaosStatus.textContent = '--';
             chaosStatus.className = 'value';
+            timeDisplay.textContent = '0.00';
+            pointCount.textContent = '0';
+            dataPointsDisplay.textContent = '0';
+            angleDisplay.textContent = '0.00 deg';
+            omegaDisplay.textContent = '0.00 rad/s';
+            log('Data reset', 'info');
         }
 
         // ============================================================
@@ -1165,7 +1168,6 @@
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
 
-                // 设置固定支点（用于参考显示）
                 pivotPoint = { x: canvas.width / 2, y: 60 };
 
                 log('Camera started. Detection running.', 'info');
@@ -1204,7 +1206,7 @@
         }
 
         // ============================================================
-        //  EXPOSE TO GLOBAL (for onclick)
+        //  EXPOSE TO GLOBAL
         // ============================================================
 
         window.startCamera = startCamera;
